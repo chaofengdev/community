@@ -24,7 +24,8 @@
 					<div class="collapse navbar-collapse" id="navbarSupportedContent">
 						<ul class="navbar-nav mr-auto">
 							<li class="nav-item ml-3 btn-group-vertical">
-								<a class="nav-link" href="index.html">首页</a>
+								<!--@{…}链接网址表达式 一般和 th:href、th:src进行结合使用，用于显示Web应用中的URL链接。通过@{…}表达式，Thymeleaf可以帮助我们拼接上web应用访问的全路径，同时我们可以通过（）进行参数的拼接-->
+								<a class="nav-link" th:href="@{/index}">首页</a> <!--这里就不能是静态的index.html了，应该是发起访问，所以这里是路径/index-->
 							</li>
 							<li class="nav-item ml-3 btn-group-vertical">
 								<a class="nav-link position-relative" href="site/letter.html">消息<span class="badge badge-danger">12</span></a>
