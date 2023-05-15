@@ -4,6 +4,7 @@ package com.nowcoder.community;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +16,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = CommunityApplication.class)
 public class LoggerTests {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoggerTests.class);
+    private static final Logger logger =  LoggerFactory.getLogger(LoggerTests.class);
 
     /**
      *  测试日志级别，对于日志的相关知识点还需要深入了解，Logback是在log4j基础上重新开发的一套日志框架，是springboot默认使用的日志框架
