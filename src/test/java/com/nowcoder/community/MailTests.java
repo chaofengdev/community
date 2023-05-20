@@ -33,7 +33,7 @@ public class MailTests {
         context.setVariable("username","chaofeng");
         //将模板地址和相关内容对象传给模板引擎，返回字符串内容
         String content = templateEngine.process("/mail/demo",context);
-        //控制台打印
+        //控制台打印，本质上就是HTML网页内容
         System.out.println(content);
         //通过客户端，用服务器发送邮件
         mailClient.sendMail("2353815549@qq.com","test Html e-mail",content);

@@ -1,12 +1,26 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.entity.User;
+import com.nowcoder.community.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.util.Map;
+
+import static com.nowcoder.community.util.CommunityConstant.ACTIVATION_REPEAT;
+import static com.nowcoder.community.util.CommunityConstant.ACTIVATION_SUCCESS;
 
 
 @Controller
 public class LoginController {
+
+    @Autowired
+    private UserService userService;
+
     /**
      * 来自菜鸟教程
      * Form 中的 get 和 post 方法，在数据传输过程中分别对应了 HTTP 协议中的 GET 和 POST 方法。二者主要区别如下：
@@ -22,17 +36,54 @@ public class LoginController {
     /**
      * Spring MVC 的 @RequestMapping 注解能够处理 HTTP 请求的方法, 比如GET, PUT, POST, DELETE 以及 PATCH。
      * 所有的请求默认都会是 HTTP GET 类型的。
-     * 为了能降一个请求映射到一个特定的 HTTP 方法，你需要在 @RequestMapping 中使用 method 来声明 HTTP 请求所使用的方法类型，如下所示：
-     * typescript复制代码
-     *
-     * 作者：Harliz
-     * 链接：https://juejin.cn/post/6844903495649198093
-     * 来源：稀土掘金
-     * 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+     * 为了能降一个请求映射到一个特定的HTTP方法，你需要在 @RequestMapping 中使用method来声明HTTP请求所使用的方法类型。
      * @return
      */
+    //访问该路径，返回注册视图
     @RequestMapping(path = "/register", method = RequestMethod.GET)
     public String getRegisterPage() {
         return "/site/register";
+    }
+
+    //访问该路径，返回登录视图
+    @RequestMapping(path = "/login", method = RequestMethod.GET)
+    public String getLoginPage() {
+        return "/site/login";
+    }
+
+    @RequestMapping(path = "/register", method = RequestMethod.POST)
+    public String register(Model model, User user) {//注意：这里springboot会将user对象自动注入到model中，思考一下注入的时机？可以显式手动注入吗？
+        //调用register获取map
+        Map<String, Object> map = userService.register(user);
+
+        //map为空表示注册成功并返回中间结果视图（会自动跳转到首页），不为空表示注册失败返回相关消息并返回到注册视图
+        if(map == null || map.isEmpty()) { //疑问：这里map一定会被实例化，为什么要判断map==null
+            model.addAttribute("msg", "注册成功，我们已向您邮箱发送了一条用于激活的邮件，请尽快激活！");
+            model.addAttribute("target", "/index");//中间结果视图会跳转到首页，这是中间结果视图需要的model信息
+            return "/site/operate-result";
+        }else {
+            //没有注册成功，本质上是service层判断不能通过，将service层的错误数据提取出来封装到model中，返回给注册页面，注册页面再进行相关展示
+            model.addAttribute("usernameMsg",map.get("usernameMsg"));
+            model.addAttribute("passwordMsg",map.get("passwordMsg"));
+            model.addAttribute("emailMsg",map.get("emailMsg"));
+            return "/site/register";
+        }
+    }
+
+    //http://localhost:8080/community/activation/101/code 前端访问路径
+    @RequestMapping(path = "/actionvation/{userId}/{code}", method = RequestMethod.GET)
+    public String activation(Model model, @PathVariable(name = "userId") int userId, @PathVariable(name = "code") String code) { //将url中占位符参数{xxx}绑定到处理器类的方法形参中，这里只是恰好占位符参数名称与处理器类方法形参相同
+        int result = userService.activation(userId, code);
+        if(result == ACTIVATION_SUCCESS) {
+            model.addAttribute("msg", "激活成功，您的账号已经可以正常使用了！");
+            model.addAttribute("target", "/login");//给operate-result视图使用，方便点击链接，跳转到登录页面
+        }else if(result == ACTIVATION_REPEAT) {
+            model.addAttribute("msg", "无效操作，该账号已经激活过了！");
+            model.addAttribute("target", "/index");//跳转到首页
+        }else {
+            model.addAttribute("msg", "激活失败，您提供的激活码不正确！");
+            model.addAttribute("target", "/index");//跳转到首页
+        }
+        return "/site/operate-result";//中间结果页面
     }
 }

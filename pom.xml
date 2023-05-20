@@ -62,6 +62,14 @@
 			<version>2.1.5.RELEASE</version>
 		</dependency>
 
+		<!--commons-lang3-->
+		<!--Apache Commons Lang 3 是非常流行的库，包括很多功能齐全的工具类，可以扩展Java的能力。
+		其中内容相当丰富，包括字符串、数组以及数值操作，反射和并发，以及几个顺序数据结构实现（pair和triple）。-->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.9</version>
+		</dependency>
 
 	</dependencies>
 

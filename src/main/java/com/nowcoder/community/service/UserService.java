@@ -2,16 +2,143 @@ package com.nowcoder.community.service;
 
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.util.CommunityUtil;
+import com.nowcoder.community.util.MailClient;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+
+import static com.nowcoder.community.util.CommunityConstant.*;
+
+//因为登录的相关功能是对用户表的操作，所以登录的相关业务代码写到UserService内。
 @Service
 public class UserService {
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
-    //根据id查询用户
+    @Autowired
+    private MailClient mailClient;//发送邮件功能
+
+    @Autowired
+    private TemplateEngine templateEngine;//邮件中需要呈现html数据，发送带有html内容的邮件需要这个对象
+
+    @Value("${community.path.domain}")
+    private String domain;//域名，这里指的是邮件内的验证网址，点击该网址跳转到验证页面，注意这里只有ip地址和端口号
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;//项目名称，用于和上面的domain拼接成完整的访问路径
+
+    /**
+     * 根据id查询用户
+     * @param id 用户id
+     * @return 查询后返回的用户对象
+     */
     public User findUserById(int id) {
         return userMapper.selectById(id);
     }
+
+    /**
+     * 注册用户的业务逻辑，传入用户对象，返回结果集合，核心逻辑是先判断传入的对象是否合法，如果合法就补充对象相关信息，并插入数据库
+     * @param user 用户对象
+     * @return map集合，保存错误消息的键值对，为空表示正常注册
+     */
+    public Map<String, Object> register(User user) {
+        //保存错误消息类型和详细错误消息对象的键值对
+        Map<String, Object> map = new HashMap<>();
+
+        //空值的处理
+        if(user == null) {//用户为空，直接抛出异常，无法处理
+            throw new IllegalArgumentException("参数不能为空！");
+        }
+        if(StringUtils.isBlank(user.getUsername())) {
+            map.put("usernameMsg","账号不能为空！");
+            return map;
+        }
+        if(StringUtils.isBlank(user.getPassword())) {
+            map.put("passwordMsg","密码不能为空！");
+            return map;
+        }
+        if(StringUtils.isBlank(user.getEmail())) {
+            map.put("emailMsg","邮箱不能为空！");
+            return map;
+        }
+
+        //验证账号是否已经存在
+        User u = userMapper.selectByName(user.getUsername());
+        if(u != null) {
+            map.put("usernameMsg","该账号已存在！");//注意这里usernameMsg的value值已经更改
+            return map;
+        }
+
+        //验证邮箱是否已经被注册
+        u = userMapper.selectByEmail(user.getEmail());
+        if(u != null) {
+            map.put("emailMsg","该邮箱已被注册！");//注意这里emailMsg的value值已经更改
+            return map;
+        }
+
+        //注册用户
+        user.setSalt(CommunityUtil.generateUUID().substring(0,5));//调用工具类生成salt
+        user.setPassword(CommunityUtil.md5(user.getPassword() + user.getSalt()));//调用工具类生成密码
+        user.setType(0);//类型 0-普通用户; 1-超级管理员; 2-版主;
+        user.setStatus(0);//状态 0-未激活; 1-已激活; 初始未激活
+        user.setActivationCode(CommunityUtil.generateUUID());//激活码
+        user.setHeaderUrl(String.format("http://images.nowcoder.com/head/%dt.png",new Random().nextInt(1000)));//头像地址  String类的format()方法用于创建格式化的字符串以及连接多个字符串对象。
+        user.setCreateTime(new Date());//注册时间
+        //将注册用户添加到数据库中
+        userMapper.insertUser(user);//插入对象，数据库主键自增，mybatis会自动获取自增的主键并填充回user对象中，此时user中有id。--配置文件中的相关设置：mybatis.configuration.useGeneratedKeys=true
+
+        //发送激活邮件
+        Context context = new Context();
+        context.setVariable("email", user.getEmail());
+        //拼接正确的激活地址：http://localhost:8080/community/activation/101/code
+        //解析：http://ip地址:端口/项目名/功能名/用户id/激活码
+        String url = domain + contextPath + "/activation/" + user.getId() + "/" + user.getActivationCode();
+        System.out.println(url);
+        context.setVariable("url", url);
+        String content = templateEngine.process("/mail/activation", context);
+        // 这里复习一下try-catch的使用逻辑：
+        // 当没有try-catch时，出现异常程序直接崩溃并将一大堆崩溃信息展示给用户，用户可能会勃然大怒觉得写的是什么东西；
+        // 加上try-catch后程序正常运行，只是将错误信息存储到Exception里，供程序员提取部分信息展示给用户。
+        // 比如前端表单填写的是错误的目的邮箱，这里会报错com.sun.mail.smtp.SMTPSendFailedException: 550 The recipient may contain a non-existent account, please check the recipient address.
+        try {
+            mailClient.sendMail(user.getEmail(), "激活账号", content);
+        }catch (Exception e) {
+            e.printStackTrace();//现阶段的代码，如果输入的邮箱不存在会出异常，应该在前端展示邮箱不存在。这里简单处理一下。
+        }
+
+        //返回map集合
+        return map;
+    }
+
+    /**
+     * 验证激活是否成功。
+     * 核心逻辑是将激活链接的激活码与数据库中的用户激活字段比较，如果相同，则修改用户状态字段并返回激活成功常量；
+     * 同时需要判断用户是否已经激活，避免重复激活。
+     * @param userId
+     * @param code
+     * @return
+     */
+    public int activation(int userId, String code) {
+        User user = userMapper.selectById(userId);
+
+        if(user.getStatus() == 1) {//用户已经激活
+            return ACTIVATION_REPEAT;
+        }else if(user.getActivationCode().equals(code)) {
+            userMapper.updateStatus(userId, 1);//激活用户
+            return ACTIVATION_SUCCESS;
+        }else {
+            return ACTIVATION_FAILURE;//不满足上述条件表示激活失败
+        }
+    }
+
+
 }

@@ -32,7 +32,7 @@ public class MailClient {
      * @param context
      */
     public void sendMail(String to, String subject, String context) {
-        //以下代码本质上都是利用导入的jar包/类库，源码都来自于spring-boot-starter-mail
+        //以下代码本质上都是利用导入的jar包或者说类库，源码都来自于spring-boot-starter-mail
         //消息对象
         MimeMessage message = javaMailSender.createMimeMessage();
         //帮助类
@@ -52,30 +52,3 @@ public class MailClient {
 
 }
 
-//@Component
-//public class MailClient {
-//
-//    private static final Logger logger = LoggerFactory.getLogger(MailClient.class);
-//
-//    @Autowired
-//    private JavaMailSender mailSender;
-//
-//    //从配置文件中获取值
-//    @Value("${spring.mail.username}")
-//    private String from;
-//
-//    public void sendMail(String to, String subject, String content) {
-//        try {
-//            MimeMessage message = mailSender.createMimeMessage();
-//            MimeMessageHelper helper = new MimeMessageHelper(message);
-//            helper.setFrom(from);
-//            helper.setTo(to);
-//            helper.setSubject(subject);
-//            helper.setText(content, true);
-//            mailSender.send(helper.getMimeMessage());
-//        } catch (MessagingException e) {
-//            logger.error("发送邮件失败:" + e.getMessage());
-//        }
-//    }
-//
-//}

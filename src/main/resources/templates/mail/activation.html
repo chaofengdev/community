@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"> <!--启用thymeleaf模板-->
 <head>
     <meta charset="utf-8">
     <link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
@@ -7,12 +7,23 @@
 </head>
 <body>
 	<div>
+		<!--通过模板引擎将email变量传给页面--> <!--2023.5.17更新，这里描述的不准确-->
+		<!--Thymeleaf通过${}来获取model中的变量，注意这不是el表达式，而是ognl表达式，但是语法非常像。-->
+		<!--另外spring自动注入了TemplateEngine对象，该对象同样可以通过Context对象和process方法显式添加变量，这些变量同样可以直接在前端html解析到。-->
+		<!--下面是关于Thymeleaf的一些简介了，温故而知新，体会一下Thymeleaf设计的哲学：-->
+		<!-- Thymeleaf崇尚模板是纯正的html代码，脱离模板引擎，在纯静态环境也可以直接运行。现在如果我们直接在html中编写 ${}这样的表达式，显然在静态环境下就会出错，这不符合Thymeleaf的理念。
+		Thymeleaf中所有的表达式都需要写在"指令"中，指令是HTML5中的自定义属性，在Thymeleaf中所有指令都是以th:开头。
+		因为表达式${user.name}是写在自定义属性中，因此在静态环境下，表达式的内容会被当做是普通字符串，浏览器会自动忽略这些指令，这样就不会报错了。
+		如果我们不经过SpringMVC，而是直接用浏览器打开编写的页面：在静态环境下,th指令不会被识别，但是也不会报错，而是显示div标签的缺省默认值：“错误日志”
+		指令的设计，正是Thymeleaf的高明之处，也是它优于其它模板引擎的原因。动静结合的设计，使得无论是前端开发人员还是后端开发人员可以完美契合。-->
 		<p>
-			<b>xxx@xxx.com</b>, 您好!
+			<b th:text="${email}">xxx@xxx.com</b>, 您好!
 		</p>
+		<!--注意，这里的th:ref并不需要使用@{...}链接网址表达式。因为通过@{...}，Thymeleaf拼接web应用访问的全路径，但如果url是全的，就直接使用字符串引用${...}即可-->
+		<!--总之呢，这里属于前端的语法，遇到了去查一查即可，等系统学习前端再进一步巩固和掌握。-->
 		<p>
 			您正在注册牛客网, 这是一封激活邮件, 请点击 
-			<a href="#">http://www.nowcoder.com/activation/abcdefg123456.html</a>,
+			<a th:href="${url}">此链接</a>,
 			激活您的牛客账号!
 		</p>
 	</div>

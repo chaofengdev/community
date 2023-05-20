@@ -12,7 +12,7 @@
 <body>
 	<div class="nk-container">
 		<!-- 头部 -->
-		<header class="bg-dark sticky-top">
+		<header class="bg-dark sticky-top" th:replace="index::header"> <!--th:replace插入引用片段的标签和内容，本质上是为了复用index的头部标签-->
 			<div class="container">
 				<!-- 导航 -->
 				<nav class="navbar navbar-expand-lg navbar-dark">
@@ -63,29 +63,42 @@
 		<div class="main">
 			<div class="container pl-5 pr-5 pt-3 pb-3 mt-3 mb-3">
 				<h3 class="text-center text-info border-bottom pb-3">注&nbsp;&nbsp;册</h3>
-				<form class="mt-5">
+				<form class="mt-5" th:method="post" th:action="@{/register}"> <!--注明表单提交方式是post，提交给~/register路径-->
 					<div class="form-group row">
 						<label for="username" class="col-sm-2 col-form-label text-right">账号:</label>
 						<div class="col-sm-10">
-							<input type="text" class="form-control" id="username" placeholder="请输入您的账号!" required>
-							<div class="invalid-feedback">
+							<!--复习：input标签中的name属性用于在JavaScript中引用元素，或者在表单提交后引用表单数据。-->
+							<!--复习：input标签中的value属性用于给出一个默认值-->
+							<!--也就是说，表单提交后，springmvc解析name属性的值到user对象中，即name属性值应该与user对象属性一一对应-->
+							<input type="text"
+								   th:class="|form-control ${usernameMsg!=null?'is-invalid':''}|" id="username"
+								   th:value="${user!=null?user.username:''}"
+								   name="username" placeholder="请输入您的账号!" required> <!--这里默认值的显示涉及到一个小判断，如果注册失败，则默认显示user.username，否则什么也不显示-->
+							<div class="invalid-feedback" th:text="${usernameMsg}"> <!--首次访问register.html时，usernameMsg为空，所以不显示，这里就不需要额外逻辑判断-->
 								该账号已存在!
-							</div>
+							</div><!--错误效果是否展现取决于input框上的样式，只有当usernameMsg确实存在时才会显示，所以需要根据usernameMsg的情况动态在input标签内指定class是否为is-invalid，作用是设置无效的样式-->
 						</div>
 					</div>
 					<div class="form-group row mt-4">
 						<label for="password" class="col-sm-2 col-form-label text-right">密码:</label>
 						<div class="col-sm-10">
-							<input type="password" class="form-control" id="password" placeholder="请输入您的密码!" required>
-							<div class="invalid-feedback">
+							<!--这里password同上username-->
+							<input type="password"
+								   th:class="|form-control ${passwordMsg!=null?'is-invalid':''}|" id="password"
+								   th:value="${user!=null?user.password:''}"
+								   name="password" placeholder="请输入您的密码!" required><!--这里小判断的处理逻辑同上-->
+							<div class="invalid-feedback" th:text="${passwordMsg}"> <!--修改逻辑同上usernameMsg-->
 								密码长度不能小于8位!
 							</div>							
 						</div>
 					</div>
 					<div class="form-group row mt-4">
+						<!--确认密码只是前段的逻辑，此数据不需要传导后端-->
 						<label for="confirm-password" class="col-sm-2 col-form-label text-right">确认密码:</label>
 						<div class="col-sm-10">
-							<input type="password" class="form-control" id="confirm-password" placeholder="请再次输入密码!" required>
+							<input type="password" class="form-control" id="confirm-password"
+								   th:value="${user!=null?user.password:''}"
+								   placeholder="请再次输入密码!" required> <!--确认密码虽然不需要提交，所以没有name属性，但是也需要在错误的情况下回填，所以有value属性，这里要仔细一点-->
 							<div class="invalid-feedback">
 								两次输入的密码不一致!
 							</div>
@@ -94,8 +107,12 @@
 					<div class="form-group row">
 						<label for="email" class="col-sm-2 col-form-label text-right">邮箱:</label>
 						<div class="col-sm-10">
-							<input type="email" class="form-control" id="email" placeholder="请输入您的邮箱!" required>
-							<div class="invalid-feedback">
+							<!--这里email同上username-->
+							<input type="email"
+								   th:class="|form-control ${emailMsg!=null?'is-invalid':''}|" id="email"
+								   th:value="${user!=null?user.email:''}"
+								   name="email" placeholder="请输入您的邮箱!" required><!--这里小判断的处理逻辑同上-->
+							<div class="invalid-feedback" th:text="${emailMsg}"> <!--修改逻辑同上usernameMsg-->
 								该邮箱已注册!
 							</div>
 						</div>
