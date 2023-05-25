@@ -91,8 +91,8 @@
 							</div>
 						</div>
 						<div class="col-sm-4">
-							<img th:src="@{/img/captcha.png}" style="width:100px;height:40px;" class="mr-2"/>
-							<a href="javascript:;" class="font-size-12 align-bottom">刷新验证码</a>
+							<img th:src="@{/kaptcha}" id="kaptcha" style="width:100px;height:40px;" class="mr-2"/> <!--修改验证码的访问路径--> <!--加上id方便在js函数中引用-->
+							<a href="javascript:refresh_kaptcha();" class="font-size-12 align-bottom">刷新验证码</a> <!--刷新是纯前端逻辑，点击链接调用js方法-->
 						</div>
 					</div>				
 					<div class="form-group row mt-4">
@@ -179,5 +179,11 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
 	<script th:src="@{/js/global.js}"></script>
+	<script>
+		function refresh_kaptcha() {
+			var path = CONTEXT_PATH + "/kaptcha?p=" + Math.random(); /*这里每次都是不同的访问路径，用随机数实现，让浏览器误以为每次访问的都是不同的资源，体会这里的小trick*/
+			$("#kaptcha").attr("src", path);/*对id为kaptcha的标签的src属性进行更改*/
+		}
+	</script>
 </body>
 </html>
