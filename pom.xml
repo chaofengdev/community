@@ -71,6 +71,16 @@
 			<version>3.9</version>
 		</dependency>
 
+		<!--kaptcha-->
+		<!--一款验证码生成工具，Kaptcha jar包用于随机生成字符和图片，spring没有默认集成，该工具官网文档有点糟糕-->
+		<!--github仓库地址：https://github.com/penggle/kaptcha-->
+		<!--官网地址：https://code.google.com/archive/p/kaptcha/-->
+		<dependency>
+			<groupId>com.github.penggle</groupId>
+			<artifactId>kaptcha</artifactId>
+			<version>2.3.2</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
