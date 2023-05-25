@@ -1,3 +1,5 @@
+var CONTEXT_PATH = "/community"; /*在任何地方可以引用这个变量*/
+
 window.alert = function(message) {
 	if(!$(".alert-box").length) {
 		$("body").append(
