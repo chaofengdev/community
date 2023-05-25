@@ -1,8 +1,10 @@
 package com.nowcoder.community;
 
 import com.nowcoder.community.dao.DiscussPostMapper;
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +25,9 @@ public class MapperTests {
 
     @Autowired
     DiscussPostMapper discussPostMapper;
+
+    @Autowired
+    LoginTicketMapper loginTicketMapper;
 
     @Test
     public void testSelectById() {
@@ -60,8 +65,6 @@ public class MapperTests {
 
         rows = userMapper.updateStatus(150,1);
         System.out.println(rows);
-
-
     }
 
     @Test
@@ -74,5 +77,32 @@ public class MapperTests {
         System.out.println(rows);
     }
 
+    /**
+     * 测试插入login_ticket记录
+     * 这里需要简单测试，因为sql语句经常容易写错，并且IDE不会自动纠错。
+     */
+    @Test
+    public void testInsertLoginTicket() {
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(102);
+        loginTicket.setTicket("abc");
+        loginTicket.setStatus(0);//表示未启用
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * 60 *10));//当前时间的后十分钟
+        loginTicketMapper.insertLoginTicket(loginTicket);
+    }
 
+    /**
+     * 测试查询和更新login_ticket记录
+     */
+    @Test
+    public void testSelectLoginTicket() {
+        //查询
+        LoginTicket loginTicket = loginTicketMapper.selectByTicket("abc");
+        System.out.println(loginTicket);
+
+        //更新
+        int rows = loginTicketMapper.updateStatus("abc", 1);
+        loginTicket = loginTicketMapper.selectByTicket("abc");//验证更新的查询
+        System.out.println(loginTicket);
+    }
 }
