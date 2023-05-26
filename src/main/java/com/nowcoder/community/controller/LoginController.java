@@ -4,9 +4,11 @@ import com.google.code.kaptcha.Producer;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
@@ -21,8 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-import static com.nowcoder.community.util.CommunityConstant.ACTIVATION_REPEAT;
-import static com.nowcoder.community.util.CommunityConstant.ACTIVATION_SUCCESS;
+import static com.nowcoder.community.util.CommunityConstant.*;
 
 
 @Controller
@@ -33,6 +35,10 @@ public class LoginController {
 
     @Autowired
     private Producer kaptcha;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);//注意类型匹配
 
@@ -124,6 +130,41 @@ public class LoginController {
             ImageIO.write(image, "png", os);//说实话不太熟悉，先用吧。
         } catch (IOException e) {
             logger.error("响应验证码失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 验证登录是否成功，如果成功重定向到首页，如果不成功回到登录页面。
+     * @param username
+     * @param password
+     * @param code
+     * @param rememberme
+     * @param model
+     * @param session
+     * @param response
+     * @return
+     */
+    @RequestMapping(path = "/login", method = RequestMethod.POST)
+    public String login(String username, String password, String code, boolean rememberme, Model model, HttpSession session, HttpServletResponse response) {
+        //检查验证码
+        String kaptcha = (String) session.getAttribute("kaptcha");//session中取出验证码
+        if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)) {//判断验证码是否正确
+            model.addAttribute("codeMsg", "验证码不正确！");
+            return "/site/login";//验证码不正确重新回到登录页面
+        }
+        //检查账号、密码
+        int expiredSeconds = rememberme ? REMEMBER_EXPIRED_SECONDS : DEFAULT_EXPIRED_SECONDS;//根据是否勾选保存，得到凭证的保存时间
+        Map<String, Object> map = userService.login(username, password, expiredSeconds);
+        if(map.containsKey("ticket")) {//包含凭证
+            Cookie cookie = new Cookie("ticket", map.get("ticket").toString());//将凭证保存到cookie发送给客户端
+            cookie.setPath(contextPath);//路径
+            cookie.setMaxAge(expiredSeconds);//cookie有效时间
+            response.addCookie(cookie);//利用reponse，服务器响应浏览器时，将cookie发送给浏览器
+            return "redirect:/index";//重定向到首页 思考一下这里为什么不forward而是redirect？简单的解释是直接返回"/index"返回的是视图，返回"redirect:/index"表示重新发起请求。
+        }else {//没有凭证，说明发生了错误
+            model.addAttribute("usernameMsg", map.get("usernameMsg"));
+            model.addAttribute("passwordMsg", map.get("passwordMsg"));
+            return "/site/login";//重新回到登录页面
         }
     }
 }
