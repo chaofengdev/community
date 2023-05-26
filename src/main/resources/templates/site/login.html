@@ -63,12 +63,21 @@
 		<div class="main">
 			<div class="container pl-5 pr-5 pt-3 pb-3 mt-3 mb-3">
 				<h3 class="text-center text-info border-bottom pb-3">登&nbsp;&nbsp;录</h3>
-				<form class="mt-5">				
+				<form class="mt-5" method="post" th:action="@{/login}"> <!--提交方式和提交路径。走login方法进行验证。-->
 					<div class="form-group row">
 						<label for="username" class="col-sm-2 col-form-label text-right">账号:</label>
 						<div class="col-sm-10">
-							<input type="text" class="form-control is-invalid" id="username" placeholder="请输入您的账号!" required>
-							<div class="invalid-feedback">
+							<!--input标签里的name要与controller方法的参数一致，因为name-value会传给该方法-->
+							<!--name属性规定input元素的名称。 name属性用于对提交到服务器后的表单数据进行标识，或者在客户端通过JavaScript引用表单数据。-->
+							<!--value属性为input元素设定值。-->
+							<!--这里的变量都是从model中取得的，其实也可以直接从request中取参数得到，因为我们在请求时就有这些参数。这里选择第二种方法。-->
+							<!--input标签的class属性是用来引用页面的类样式，其具体的内容如form-control、is-invalid属于js的类，这里知道这么用就可以了。-->
+							<input type="text" th:class="|form-control ${usernameMsg!=null?'is-invalid':''}|"
+								   th:value="${param.username}"
+								   id="username" name="username"
+								   placeholder="请输入您的账号!" required>
+							<!--这里的错误提示应该是动态的。添加th:text="${usernameMsg}"-->
+							<div class="invalid-feedback" th:text="${usernameMsg}">
 								该账号不存在!
 							</div>
 						</div>
@@ -76,8 +85,15 @@
 					<div class="form-group row mt-4">
 						<label for="password" class="col-sm-2 col-form-label text-right">密码:</label>
 						<div class="col-sm-10">
-							<input type="password" class="form-control is-invalid" id="password" placeholder="请输入您的密码!" required>
-							<div class="invalid-feedback">
+							<!--添加name="password"-->
+							<!--添加th:value="${param.password}"-->
+							<!--添加th:class="|form-control ${passwordMsg!=null?'is-invalid':''}|"-->
+							<input type="password" th:class="|form-control ${passwordMsg!=null?'is-invalid':''}|"
+								   th:value="${param.password}"
+								   id="password" name="password"
+								   placeholder="请输入您的密码!" required>
+							<!--这里的错误提示应该是动态的。添加th:text="${passwordMsg}"-->
+							<div class="invalid-feedback" th:text="${passwordMsg}">
 								密码长度不能小于8位!
 							</div>							
 						</div>
@@ -85,8 +101,13 @@
 					<div class="form-group row mt-4">
 						<label for="verifycode" class="col-sm-2 col-form-label text-right">验证码:</label>
 						<div class="col-sm-6">
-							<input type="text" class="form-control is-invalid" id="verifycode" placeholder="请输入验证码!">
-							<div class="invalid-feedback">
+							<!--添加name="code"-->
+							<!--添加th:class="|form-control ${codeMsg!=null?'is-invalid':''}|"-->
+							<input type="text" th:class="|form-control ${codeMsg!=null?'is-invalid':''}|"
+								   id="verifycode" name="code"
+								   placeholder="请输入验证码!">
+							<!--这里的错误提示应该是动态的。添加th:text="${codeMsg}"-->
+							<div class="invalid-feedback" th:text="${codeMsg}">
 								验证码不正确!
 							</div>
 						</div>
@@ -98,7 +119,11 @@
 					<div class="form-group row mt-4">
 						<div class="col-sm-2"></div>
 						<div class="col-sm-10">
-							<input type="checkbox" id="remember-me" checked="checked">
+							<!--添加name="rememberme"-->
+							<!--添加th:checked="${param.rememberme}"，即为true勾选，为false不勾选-->
+							<input type="checkbox"
+								   id="remember-me" name="rememberme"
+								   th:checked="${param.rememberme}">
 							<label class="form-check-label" for="remember-me">记住我</label>
 							<a href="forget.html" class="text-danger float-right">忘记密码?</a>
 						</div>
