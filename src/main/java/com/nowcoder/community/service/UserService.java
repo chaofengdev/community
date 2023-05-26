@@ -196,4 +196,12 @@ public class UserService {
         map.put("ticket", loginTicket.getTicket());//Controller使用的数据--凭证
         return map;
     }
+
+    /**
+     * 退出功能
+     * @param ticket
+     */
+    public void logout(String ticket) {
+        loginTicketMapper.updateStatus(ticket, 1);//凭证置为无效
+    }
 }
