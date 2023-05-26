@@ -1,6 +1,8 @@
 package com.nowcoder.community.service;
 
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.MailClient;
@@ -18,7 +20,7 @@ import java.util.Random;
 
 import static com.nowcoder.community.util.CommunityConstant.*;
 
-//因为登录的相关功能是对用户表的操作，所以登录的相关业务代码写到UserService内。
+//因为注册、登录的相关功能是对用户表的操作，所以登录的相关业务代码写到UserService内。
 @Service
 public class UserService {
     @Autowired
@@ -29,6 +31,9 @@ public class UserService {
 
     @Autowired
     private TemplateEngine templateEngine;//邮件中需要呈现html数据，发送带有html内容的邮件需要这个对象
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;//登录验证功能
 
     @Value("${community.path.domain}")
     private String domain;//域名，这里指的是邮件内的验证网址，点击该网址跳转到验证页面，注意这里只有ip地址和端口号
@@ -140,5 +145,55 @@ public class UserService {
         }
     }
 
+    /**
+     * 根据username，password和expiredSeconds，判断某个用户是否登录成功
+     * @param username
+     * @param password
+     * @param expiredSeconds 单位秒
+     * @return
+     */
+    public Map<String, Object> login(String username, String password, int expiredSeconds) {
+        Map<String, Object> map = new HashMap<>();
+        // 空值处理
+        if(StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "账号不能为空！");
+            return map;
+        }
+        if(StringUtils.isBlank(password)) {
+            map.put("passwordMsg","密码不能为空！");
+            return map;
+        }
 
+        // 验证账号
+        User user = userMapper.selectByName(username);
+        if(user == null) {
+            map.put("usernameMsg", "该账号不存在！");
+            return map;
+        }
+
+        // 验证状态
+        if(user.getStatus() == 0) {
+            map.put("usernameMsg", "该账号未激活！");
+            return map;
+        }
+
+        // 验证密码--根据待登录用户传入的密码，进行md5加密，与数据库中保存的加密密码对比
+        String md5_password = CommunityUtil.md5(password + user.getSalt());
+        if(!user.getPassword().equals(md5_password)) {
+            map.put("passwordMsg", "密码不正确！");
+            return map;
+        }
+
+        // 生成登录凭证--检查完成，确认用户登录成功，生成登录凭证，并保存到数据库中，用于保持登录状态
+        // 这里用ticket来代替session，核心逻辑：用户登录完成后，下次再次访问时将ticket发送给服务器，服务器在login_ticket数据库中找到记录，则认为用户在登录状态。
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());//随机生成凭证
+        loginTicket.setStatus(0);//0表示未启用，1表示启用？
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * expiredSeconds));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        map.put("ticket", loginTicket.getTicket());//Controller使用的数据--凭证
+        return map;
+    }
 }
