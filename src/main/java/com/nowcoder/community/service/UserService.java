@@ -204,4 +204,8 @@ public class UserService {
     public void logout(String ticket) {
         loginTicketMapper.updateStatus(ticket, 1);//凭证置为无效
     }
+
+    public LoginTicket findLoginTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
+    }
 }

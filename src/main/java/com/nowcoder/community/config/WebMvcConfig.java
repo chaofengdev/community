@@ -1,6 +1,7 @@
 package com.nowcoder.community.config;
 
 import com.nowcoder.community.controller.Interceptor.AlphaInterceptor;
+import com.nowcoder.community.controller.Interceptor.LoginTicketInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,12 +19,19 @@ public class WebMvcConfig implements WebMvcConfigurer {//WebMvcConfigurer接口�
     @Autowired
     private AlphaInterceptor alphaInterceptor;
 
+    @Autowired
+    private LoginTicketInterceptor loginTicketInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        //配置拦截器的具体属性：排除部分对象，拦截的访问路径
+        //配置拦截器的具体属性：排除部分对象，需要拦截的访问路径
         registry.addInterceptor(alphaInterceptor)
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg")
                 .addPathPatterns("/register", "/login");
+
+        //除了静态资源外，拦截所有请求。
+        registry.addInterceptor(loginTicketInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
         //WebMvcConfigurer.super.addInterceptors(registry);
     }
 }
