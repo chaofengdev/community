@@ -1,6 +1,8 @@
 package com.nowcoder.community.config;
 
+import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.controller.Interceptor.AlphaInterceptor;
+import com.nowcoder.community.controller.Interceptor.LoginRequiredInterceptor;
 import com.nowcoder.community.controller.Interceptor.LoginTicketInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +24,13 @@ public class WebMvcConfig implements WebMvcConfigurer {//WebMvcConfigurer接口�
     @Autowired
     private LoginTicketInterceptor loginTicketInterceptor;
 
+    @Autowired
+    private LoginRequiredInterceptor loginRequiredInterceptor;
+
+    /**
+     * 下面定义的拦截器的实际执行的先后顺序：由注册的顺序决定。
+     * @param registry
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         //配置拦截器的具体属性：排除部分对象，需要拦截的访问路径
@@ -31,6 +40,10 @@ public class WebMvcConfig implements WebMvcConfigurer {//WebMvcConfigurer接口�
 
         //除了静态资源外，拦截所有请求。
         registry.addInterceptor(loginTicketInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+
+        //不需要拦截静态资源，这里是为了效率考虑的。
+        registry.addInterceptor(loginRequiredInterceptor)
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
         //WebMvcConfigurer.super.addInterceptors(registry);
     }
