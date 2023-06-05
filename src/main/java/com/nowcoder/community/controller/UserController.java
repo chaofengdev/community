@@ -87,12 +87,18 @@ public class UserController {
         User user = hostHolder.getUsers();
         String headerUrl = domain + contextPath + "/user/header/" + fileName;//这里的路径是调用下面getHeader方法获取图片。
         userService.updateHeader(user.getId(), headerUrl);
+        //return “/site/index”是返回一个模板路径，本次请求没有处理完，DispatcherServlet会将Model中的数据和对应的模板提交给模板引擎，让它继续处理完这次请求。
+        //return "redirect:/index"是重定向，表示本次请求已经处理完毕，但是没有什么合适的数据展现给客户端，建议客户端再发一次请求，访问"/index"以获得合适的数据。
         return "redirect:/index";//重定向到首页，同时头像更新为最新的头像
     }
 
     /**
      * 从本地（服务器）读取图片并传给response对象（即可在浏览器展现）
      * 这里response对象底层没有进行进一步深入探究。？？？
+     * 更新：关于“response.setContentType("image/"+suffix);”的解读
+     * 这里主要是关于HTTP协议的内容，详细参见：https://www.runoob.com/http/http-tutorial.html
+     * HTTP请求报文：请求行+请求头+空行+请求体；
+     * HTTP响应报文：状态行+响应头+空行+响应体。
      * @param fileName
      * @param response
      */
