@@ -66,32 +66,33 @@ public class SensitiveFilter {
     }
 
     /**
-     * 利用前缀树过滤敏感词的算法
-     *
+     * 利用前缀树过滤敏感词的算法--老师的版本存在一些bug
+     * 将某个
      * @param text 待过滤的文本
      * @return 过滤后的文本
      */
     public String filter(String text){
+        //判断text文本是否有空格
         if(StringUtils.isBlank(text)){
             return null;
         }
-        // 指针1
+        // 工作指针--遍历前缀树
         TrieNode tempNode = rootNode;
-        // 指针2
+        // 左指针
         int begin = 0;
-        // 指针3
+        // 右指针
         int position = 0;
         // 结果
         StringBuilder sb = new StringBuilder();
 
         while(begin < text.length()){
             if(position < text.length()) {
-                Character c = text.charAt(position);
+                Character c = text.charAt(position);//char基本类型 Character包装类型
 
                 // 跳过符号
                 if (isSymbol(c)) {
                     if (tempNode == rootNode) {
-                        begin++;
+                        begin++;//略过符号
                         sb.append(c);
                     }
                     position++;
@@ -100,7 +101,7 @@ public class SensitiveFilter {
 
                 // 检查下级节点
                 tempNode = tempNode.getSubNode(c);
-                if (tempNode == null) {
+                if (tempNode == null) {//不是敏感词
                     // 以begin开头的字符串不是敏感词
                     sb.append(text.charAt(begin));
                     // 进入下一个位置
@@ -109,7 +110,7 @@ public class SensitiveFilter {
                     tempNode = rootNode;
                 }
                 // 发现敏感词
-                else if (tempNode.isKeywordEnd()) {
+                else if (tempNode.isKeywordEnd()) {//是敏感词
                     sb.append(REPLACEMENT);
                     begin = ++position;
                 }
