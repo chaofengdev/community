@@ -239,4 +239,13 @@ public class AlphaController {
         System.out.println(session.getAttribute("name"));
         return "get session success!" + session.getAttribute("name");//这里有时浏览器显示`get session success!null`，是因为session会话失效（超时？），所以session中的属性不存在，需要重新设置。
     }
+
+    //ajax实例
+    @RequestMapping(path = "/ajax", method = RequestMethod.POST)
+    @ResponseBody //异步请求，向浏览器发送json字符串
+    public String testAjax(String name, int age) {
+        System.out.println(name);
+        System.out.println(age);
+        return CommunityUtil.getJSONString(0, "okk");
+    }
 }

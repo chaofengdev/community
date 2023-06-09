@@ -1,8 +1,13 @@
 package com.nowcoder.community.util;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import jdk.dynalink.beans.StaticClass;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class CommunityUtil {
@@ -30,5 +35,56 @@ public class CommunityUtil {
         }
         //利用spring自带的工具，DigestUtils.md5DigestAsHex()将密码通过md5算法加密为十六进制的字符串，注意这里需要传入byte[]类型，所以需要String到byte[]类型的转换
         return DigestUtils.md5DigestAsHex(key.getBytes());
+    }
+
+    /**
+     * 利用json对象封装相关数据，返回json字符串
+     * 浏览器得到服务器传来的json字符串，转换为JavaScript对象，得到每个key-value
+     * @param code
+     * @param msg
+     * @param map
+     * @return json格式的字符串
+     */
+    public static String getJSONString(int code, String msg, Map<String, Object> map) {
+        //新建json对象
+        JSONObject json = new JSONObject();
+        //json对象封装相关数据
+        json.put("code",code);
+        json.put("msg",msg);
+        if(map != null) {
+            for(String key : map.keySet()) {
+                json.put(key, map.get(key));
+            }
+        }
+        //返回字符串
+        return json.toJSONString();//将Java对象序列化为JSON字符串
+    }
+
+    /**
+     * getJSONString重载1
+     * @param code
+     * @param msg
+     * @return
+     */
+    public static String getJSONString(int code, String msg) {
+        return getJSONString(code,msg,null);
+    }
+
+    /**
+     * getJSONString重载2
+     * @param code
+     * @return
+     */
+    public static String getJSONString(int code) {
+        return getJSONString(code, null, null);
+    }
+
+    //简单测试一下几个工具类。
+    //因为工具类不需要注入到spring中，所以在这里简单测试。
+    public static void main (String[] args) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", "chenchaofeng");
+        map.put("age", 99);
+        System.out.println(getJSONString(0, "ok", map));
     }
 }

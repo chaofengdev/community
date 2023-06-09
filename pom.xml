@@ -81,6 +81,18 @@
 			<version>2.3.2</version>
 		</dependency>
 
+		<!--fastjson-->
+		<!--Fastjson is a JSON processor (JSON parser + JSON generator) written in Java-->
+		<!--可以把java对象转换为JSON格式，也可以把JSON字符串转换为对象-->
+		<!--版本1.2.58存在反序列化漏洞，已经在仓库中被移除-->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>2.0.23</version>
+		</dependency>
+
+
+
 	</dependencies>
 
 	<build>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AJAX</title>
+</head>
+<body>
+    <p>
+        <input type="button" value="send" onclick="send();">
+    </p>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script>
+        /*这里是前端的知识点，jQuery发送异步请求*/
+        /*
+        * 通过这段代码，你可以向服务器发送异步 POST 请求，并在回调函数中处理服务器返回的数据。
+        * 在示例中，数据被解析为 JSON 对象，然后分别打印了 code 和 msg 属性的值。
+        * 具体的处理逻辑需要根据服务器端的实现来确定。
+        * */
+        function send() {
+            $.post( /*jQuery提供的一个简化的方法，用于发送POST请求到服务器*/
+                "/community/alpha/ajax",
+                {"name":"chenchaofeng","age":23},
+                function (data) {/*回调函数，当服务器返回响应时会被调用。data参数是服务器返回的数据。*/
+                    console.log(typeof(data));
+                    console.log(data);
+
+                    data = $.parseJSON(data);/*将data转成json对象，服务器返回的数据可能是JSON字符串，需要将其转换为JavaScript对象才能进一步处理。*/
+                    console.log(typeof(data));
+                    console.log(data.code);
+                    console.log(data.msg);
+                }
+            );
+        }
+    </script>
+</body>
+</html>
