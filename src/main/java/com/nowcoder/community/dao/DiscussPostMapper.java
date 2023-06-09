@@ -20,4 +20,7 @@ public interface DiscussPostMapper {
     //3.XML中的SQL使用了$，那么参数中也需要 @Param注解
     //4.动态SQL使用了参数作为变量，也需要@Param注解
     int selectDiscussPostRows(@Param("userId") int userId);
+
+    //增加帖子
+    int insertDiscussPost(DiscussPost discussPost);
 }

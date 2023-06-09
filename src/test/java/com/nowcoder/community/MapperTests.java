@@ -68,7 +68,7 @@ public class MapperTests {
     }
 
     @Test
-    public void testSelectDisscussPosts() {
+    public void testSelectDiscussPosts() {
         List<DiscussPost> list = discussPostMapper.selectDiscussPosts(149, 0, 10);
         for(DiscussPost post : list) {
             System.out.println(post.toString());
