@@ -24,6 +24,12 @@ public class HomeController {
     @Autowired
     UserService userService;
 
+    /**
+     * 获取首页帖子，分页展示
+     * @param model
+     * @param page
+     * @return
+     */
     @RequestMapping(path = "/index", method = RequestMethod.GET)
     public String getIndexPage(Model model, Page page) { //前端需要Page对象的相关数据，实现分页效果
         //方法调用前，SpringMVC会自动实例化Model和Page，并将Page注入Model，

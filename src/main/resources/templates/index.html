@@ -119,13 +119,15 @@
 
 				<!-- 帖子列表 -->
 				<ul class="list-unstyled">
+					<!--discussPosts集合保存了若干个map，每个map保存帖子对象和用户对象，这个discussPosts集合会被返回到前端中，详细见HomeController-->
 					<li class="media pb-3 pt-3 mb-3 border-bottom" th:each="map:${discussPosts}"> <!--这里模板引擎会自动取出discussPosts集合中的每一个map，将map给每一行列表，涉及前端知识点-->
 						<a href="site/profile.html">
 							<img th:src="${map.user.headerUrl}" class="mr-4 rounded-circle" alt="用户头像" style="width:50px;height:50px;"> <!--图片的链接从后端获取-->
 						</a>
 						<div class="media-body">
 							<h6 class="mt-0 mb-3">
-								<a href="#" th:utext="${map.post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</a>  <!--帖子内容展示，utext表示可以自动转义相关符号；这里本质上是map.get("post").getTitle()，模板引擎帮我们做了相关工作-->
+								<!--帖子的链接路径更新，thymeleaf自动补全项目路径-->
+								<a th:href="@{|/discuss/detail/${map.post.id}|}" th:utext="${map.post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</a>  <!--帖子内容展示，utext表示可以自动转义相关符号；这里本质上是map.get("post").getTitle()，模板引擎帮我们做了相关工作-->
 								<span class="badge badge-secondary bg-primary" th:if="${map.post.type==1}">置顶</span> <!--逻辑判断，只有type为1，才显示置顶-->
 								<span class="badge badge-secondary bg-danger" th:if="${map.post.status==1}">精华</span> <!--逻辑判断，只有status为1，才显示精华-->
 							</h6>
