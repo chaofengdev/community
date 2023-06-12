@@ -80,7 +80,7 @@ public class DiscussPostController implements CommunityConstant {
         model.addAttribute("user",user);
 
         //帖子的回复
-        //评论的分页信息
+        //评论的分页信息--这里实现了分页查询的功能，这里可以体会出Page类设置的好处，能够直接复用前端的分页组件，不需要修改后端任何代码。
         page.setLimit(5);//只显示5条评论，显示效果更好
         page.setPath("/discuss/detail/" + discussPostId);//访问路径
         page.setRows(post.getCommentCount());//discuss_post的冗余字段，直接查出某个帖子下评论的总数量
@@ -88,7 +88,7 @@ public class DiscussPostController implements CommunityConstant {
         //评论：给帖子的评论
         //回复：给评论的评论
         //评论列表
-        List<Comment> commentList = commentService.findCommentByEntity(ENTITY_TYPE_POST, post.getId(), page.getOffset(), page.getLimit());
+        List<Comment> commentList = commentService.findCommentByEntity(ENTITY_TYPE_POST, post.getId(), page.getOffset(), page.getLimit());//支持分页查询
         //评论VO列表 关于java中VO的解释：https://www.cnblogs.com/yxnchinahlj/archive/2012/02/24/2366110.html
         List<Map<String, Object>> commentVoList = new ArrayList<>();//commentVoList里的Vo表示view object，即显示对象
         if(commentList != null) {
