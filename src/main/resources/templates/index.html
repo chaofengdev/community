@@ -136,33 +136,37 @@
 								<ul class="d-inline float-right">
 									<li class="d-inline ml-2">赞 11</li>
 									<li class="d-inline ml-2">|</li>
-									<li class="d-inline ml-2">回帖 7</li>
+									<li class="d-inline ml-2">回帖 <span th:text="${map.post.commentCount}">777</span></li>
 								</ul>
 							</div>
 						</div>
 					</li>
 				</ul>
 				<!-- 分页 -->
-				<nav class="mt-5" th:if="${page.rows>0}"> <!--如果记录为0，不显示分页组件-->
+				<nav class="mt-5" th:if="${page.rows>0}" th:fragment="pagination"> <!--如果记录为0，不显示分页组件-->
 					<ul class="pagination justify-content-center">
+						<!--首页-->
 						<li class="page-item">
 							<!--地址拼接效果：/index?current=1 即模板引擎会自动添加?来拼接地址 -->
 							<!--总之类似${page.path}这种语法的，都表示从model对象中取出page对象，从page对象中取出相关数据-->
 							<!--至于@{...}，链接网址表达式，一般和th:href、th:src进行结合使用，用于显示Web应用中的URL链接。-->
 							<a class="page-link" th:href="@{${page.path}(current=1)}">首页</a>
 						</li>
+						<!--上一页-->
 						<li th:class="|page-item ${page.current==1?'disabled':''}|"> <!--当前页是第一页，上一页不能点击-->
 							<a class="page-link" th:href="@{${page.path}(current=${page.current-1})}">上一页</a>
 						</li>
+						<!--分页逻辑-->
 						<!--模板引擎语法，${#numbers.sequence(0,4)}表示生成数组[0,1,2,3]-->
 						<!--这里在前端是动态展示分页，具体页数与当前页有关，一般情况是5页，即当前页以及当前页的前两页和后两页-->
 						<li th:class="|page-item ${i==page.current?'active':''}|" th:each="i:${#numbers.sequence(page.from,page.to)}">
 							<a class="page-link" th:href="@{${page.path}(current=${i})}" th:text="${i}">1</a> <!--完善点击页码，查询该页的所有记录的前端效果-->
 						</li>
-
+						<!--下一页-->
 						<li th:class="|page-item ${page.current==page.total?'disabled':''}|"> <!--当前页是最后一页，最后一页不能点击-->
 							<a class="page-link" th:href="@{${page.path}(current=${page.current+1})}">下一页</a>
 						</li>
+						<!--末页-->
 						<li class="page-item">
 							<!--链接网址表达式，合理拼接相关字段即可-->
 							<!--根据这个url访问，其实就是将current传入page对象中，后端再根据page的数据查询数据库相关数据-->

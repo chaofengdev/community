@@ -1,9 +1,13 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.entity.Comment;
 import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Date;
+import java.util.*;
 
 @Controller
 @RequestMapping("/discuss")
-public class DiscussPostController {
+public class DiscussPostController implements CommunityConstant {
 
     @Autowired
     private DiscussPostService discussPostService;
@@ -28,6 +32,9 @@ public class DiscussPostController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private CommentService commentService;
 
     /**
      * 增加某个帖子
@@ -57,24 +64,67 @@ public class DiscussPostController {
     }
 
     /**
-     * 查看某个帖子
-     * @param discussPost
+     * 查看某个帖子详情数据
+     * 以及帖子下方的评论数据，还需要实现评论数据的分页
+     * @param discussPostId
      * @param model
      * @return
      */
     @RequestMapping(path = "/detail/{discussPostId}", method = RequestMethod.GET)
-    public String getDiscussPost(@PathVariable("discussPostId") int discussPost, Model model) {//这里需要返回具体帖子详情的页面，所以不需要@ResponseBody注解
+    public String getDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model, Page page) {//这里需要返回具体帖子详情的页面，所以不需要@ResponseBody注解
         //帖子
-        DiscussPost post = discussPostService.findDiscussPostById(discussPost);
+        DiscussPost post = discussPostService.findDiscussPostById(discussPostId);
         model.addAttribute("post", post);
         //帖子作者--可以在数据库中关联查询，也可以在这里单独查询user再添加到model中
         User user = userService.findUserById(post.getUserId());
         model.addAttribute("user",user);
 
-        //帖子的回复相关内容--待补充
+        //帖子的回复
+        //评论的分页信息
+        page.setLimit(5);//只显示5条评论，显示效果更好
+        page.setPath("/discuss/detail/" + discussPostId);//访问路径
+        page.setRows(post.getCommentCount());//discuss_post的冗余字段，直接查出某个帖子下评论的总数量
+
+        //评论：给帖子的评论
+        //回复：给评论的评论
+        //评论列表
+        List<Comment> commentList = commentService.findCommentByEntity(ENTITY_TYPE_POST, post.getId(), page.getOffset(), page.getLimit());
+        //评论VO列表 关于java中VO的解释：https://www.cnblogs.com/yxnchinahlj/archive/2012/02/24/2366110.html
+        List<Map<String, Object>> commentVoList = new ArrayList<>();//commentVoList里的Vo表示view object，即显示对象
+        if(commentList != null) {
+            for(Comment comment : commentList) {
+                //评论VO
+                Map<String, Object> commentVo = new HashMap<>();
+                //评论
+                commentVo.put("comment", comment);//评论
+                //评论的作者
+                commentVo.put("user", userService.findUserById(comment.getUserId()));//评论的作者
+                //回复列表--这里需要理解，帖子的评论下还有评论，此为回复。这里感觉数据库表设计的不是很合理，希望后面得到改进。
+                List<Comment> replyList = commentService.findCommentByEntity(ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);//这里本质上不需要分页
+                //回复VO列表
+                List<Map<String, Object>> replyVoList = new ArrayList<>();
+                if(replyList != null) {
+                    for(Comment reply : replyList) {
+                        Map<String, Object> replyVo = new HashMap<>();
+                        //回复
+                        replyVo.put("reply", reply);
+                        //作者
+                        replyVo.put("user",userService.findUserById(reply.getUserId()));
+                        //回复目标--这里和前端需要的数据有关，前端需要回复目标的数据
+                        User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
+                        replyVo.put("target", target);
+                        replyVoList.add(replyVo);
+                    }
+                }
+                commentVo.put("replys", replyVoList);
+                //回复数量
+                int replyCount = commentService.findCommentCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("replyCount", replyCount);
+                commentVoList.add(commentVo);
+            }
+        }
+        model.addAttribute("comments", commentVoList);
         //返回模板路径
         return "/site/discuss-detail";
     }
-
-
 }
