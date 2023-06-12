@@ -28,5 +28,5 @@ public interface DiscussPostMapper {
     DiscussPost selectDiscussPostById(int id);
 
     //修改--增加或者删除评论后，修改某个帖子的评论数量
-    int updateCommentCount(int id, int commmentCount);
+    int updateCommentCount(int id, int commentCount);
 }

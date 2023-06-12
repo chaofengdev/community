@@ -32,8 +32,9 @@
         and entity_id = #{entityId}
     </select>
 
-    <insert id="insertComment" parameterType="Comment">
+    <!--增加评论-->
+    <insert id="insertComment" parameterType="Comment" keyProperty="id">
         insert into comment(<include refid="insertFields"></include>)
-        values (#{userId}, #{entityType}, #{entityId}, #{targetId}, #{content}, #{status}, #{status}, #{createTime})
+        values (#{userId}, #{entityType}, #{entityId}, #{targetId}, #{content}, #{status}, #{createTime})
     </insert>
 </mapper>

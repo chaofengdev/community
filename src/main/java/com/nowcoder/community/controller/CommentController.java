@@ -27,9 +27,10 @@ public class CommentController {
         comment.setUserId(hostHolder.getUsers().getId());//用户不一定登录，所以user可能为空，后面统一异常处理
         comment.setStatus(0);
         comment.setCreateTime(new Date());
-        //增加帖子
+        //增加评论
         commentService.addComment(comment);
         //重定向到帖子详情页面
+        //关于重定向，我们评论后还要再查看这条帖子详情，就相当于再发送一个查看帖子详情的请求
         return "redirect:/discuss/detail/" + discussPostId;
     }
 }
