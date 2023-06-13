@@ -32,6 +32,7 @@ public class MessageController {
     //私信列表
     @RequestMapping(path = "/letter/list", method = RequestMethod.GET)
     public String getLetterList(Model model, Page page) {
+        //Integer.valueOf("abc");
         User user = hostHolder.getUsers();
         //分页信息
         page.setLimit(5);
