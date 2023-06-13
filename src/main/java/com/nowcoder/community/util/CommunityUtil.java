@@ -38,7 +38,7 @@ public class CommunityUtil {
     }
 
     /**
-     * 利用json对象封装相关数据，返回json字符串
+     * （利用json对象封装相关数据，）返回json字符串
      * 浏览器得到服务器传来的json字符串，转换为JavaScript对象，得到每个key-value
      * @param code
      * @param msg

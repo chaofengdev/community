@@ -8,7 +8,14 @@
         id, from_id, to_id, conversation_id, content, status, create_time
     </sql>
 
+    <sql id="insertFields">
+        from_id, to_id, conversation_id, content, status, create_time
+    </sql>
 
+
+    <!--==============================================================================
+        查询message
+     ================================================================================-->
     <!--获取最近的对话列表，其中每个对话都包含最新的消息。返回的结果将按照最新消息的ID降序排列，并根据指定的偏移量和行数进行分页。-->
     <!--子查询用于选择每个会话中的最新消息。
     它找到具有以下条件的消息：状态不等于2，发送者不等于1，并且发送者ID或接收者ID等于给定的用户ID（通过参数#{userId}传递）。
@@ -73,5 +80,21 @@
 
     </select>
 
+    <!--==============================================================================
+        修改message
+     ================================================================================-->
+    <!--新增消息-->
+    <insert id="insertMessage" parameterType="Message" keyProperty="id">
+        insert into message(<include refid="insertFields"></include>)
+        values (#{fromId},#{toId},#{conversationId},#{content},#{status},#{createTime})
+    </insert>
 
+    <!--（批量）修改消息的状态--> <!--mybatis中foreach的写法，详见官方文档。这里不小心遗漏item="id"导致错误-->
+    <update id="updateStatus">
+        update message set status = #{status}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>
