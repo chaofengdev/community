@@ -9,6 +9,7 @@ import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -57,5 +58,43 @@ public class MessageController {
         model.addAttribute("letterUnreadCount", letterUnreadCount);
 
         return "/site/letter";
+    }
+
+    //私信详情
+    @RequestMapping(path = "/letter/detail/{conversationId}", method = RequestMethod.GET)
+    public String getLetterDetail(@PathVariable("conversationId") String conversationId, Page page, Model model) {
+        //分页信息
+        page.setLimit(5);
+        page.setPath("/letter/detail/" + conversationId);
+        page.setRows(messageService.findLetterCount(conversationId));
+        //私信列表
+        List<Message> lettersList = messageService.findLetters(conversationId, page.getOffset(), page.getLimit());
+        List<Map<String,Object>> letters = new ArrayList<>();
+        if(lettersList != null) {
+            for(Message message : lettersList) {
+                Map<String,Object> map = new HashMap<>();
+                map.put("letter", message);
+                map.put("fromUser", userService.findUserById(message.getFromId()));
+                letters.add(map);
+            }
+        }
+        model.addAttribute("letters",letters);
+        //私信目标
+        model.addAttribute("target",getLetterTarget(conversationId));
+
+        return "/site/letter-detail";
+    }
+
+    //辅助方法，根据conversationId找到会话目标。
+    private User getLetterTarget(String conversationId) {
+        String[] ids = conversationId.split("_");
+        int id0 = Integer.parseInt(ids[0]);
+        int id1 = Integer.parseInt(ids[1]);
+
+        if(hostHolder.getUsers().getId() == id0) {
+            return userService.findUserById(id1);
+        }else {
+            return userService.findUserById(id0);
+        }
     }
 }
