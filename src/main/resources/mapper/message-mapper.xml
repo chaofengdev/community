@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nowcoder.community.dao.MessageMapper">
+
+    <sql id="selectFields">
+        id, from_id, to_id, conversation_id, content, status, create_time
+    </sql>
+
+
+    <!--获取最近的对话列表，其中每个对话都包含最新的消息。返回的结果将按照最新消息的ID降序排列，并根据指定的偏移量和行数进行分页。-->
+    <!--子查询用于选择每个会话中的最新消息。
+    它找到具有以下条件的消息：状态不等于2，发送者不等于1，并且发送者ID或接收者ID等于给定的用户ID（通过参数#{userId}传递）。
+    子查询使用GROUP BY语句按会话ID分组，并选择每个组中具有最大ID的消息。-->
+    <select id="selectConversations" resultType="Message">
+        select <include refid="selectFields"></include>
+        from message
+        where id in (
+            select max(id) from message
+            where status != 2
+            and from_id != 1
+            and (from_id = #{userId} or to_id = #{userId})
+            group by conversation_id
+        )
+        order by id desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--该查询用于根据特定条件获取特定用户的对话数量。-->
+    <select id="selectConversationCount" resultType="java.lang.Integer">
+        select count(m.maxid) from (
+            select max(id) as maxid from message
+            where status != 2
+            and from_id != 1
+            and (from_id = #{userId} or to_id = #{userId})
+            group by conversation_id
+        ) as m
+    </select>
+
+    <!--查询某个会话conversation包含的私信列表，需要分页-->
+    <!--ps:一个会话conversation包含多个私信letter-->
+    <select id="selectLetters" resultType="com.nowcoder.community.entity.Message">
+        select <include refid="selectFields"></include>
+        from message
+        where status != 2
+        and from_id != 1
+        and conversation_id = #{conversationId}
+        order by id desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--查询某个会话所包含的私信数量--><!--查数量不需要分页-->
+    <select id="selectLetterCount" resultType="java.lang.Integer">
+        select count(id)
+        from message
+        where status != 2
+        and from_id != 1
+        and conversation_id = #{conversationId}
+    </select>
+
+    <!--查询未读私信数量-->
+    <!--这里需要查总的未读私信数量，或者某个会话的未读私信数量，所以需要动态拼接sql-->
+    <select id="selectLetterUnreadCount" resultType="java.lang.Integer">
+        select count(id)
+        from message
+        where status = 0
+        and from_id != 1
+        and to_id = #{userId}
+        <if test="conversationId!=null">
+            and conversation_id = #{conversationId}
+        </if>
+
+    </select>
+
+
+</mapper>
