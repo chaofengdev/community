@@ -38,7 +38,7 @@ public class ExceptionAdvice {
 
     @ExceptionHandler({Exception.class})//表示对Exception异常生效，即对所有异常生效
     public void handleException(Exception e, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        logger.error("服务器发生异常：" + e.getMessage());//将拼接后的错误消息作为日志信息记录下来
+        logger.error("服务器发生异常：" + e.getMessage());//将拼接后的错误消息作为日志信息记录下来，具体记录方式在配置文件logback.xml中
         for(StackTraceElement element : e.getStackTrace()) {//打印异常堆栈轨迹信息到日志中
             logger.error(element.toString());
         }
