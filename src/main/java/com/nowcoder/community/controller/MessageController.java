@@ -32,7 +32,7 @@ public class MessageController {
     //私信列表
     @RequestMapping(path = "/letter/list", method = RequestMethod.GET)
     public String getLetterList(Model model, Page page) {
-        //Integer.valueOf("abc");
+        //Integer.valueOf("abc");//验证异常的错误代码
         User user = hostHolder.getUsers();
         //分页信息
         page.setLimit(5);
@@ -120,6 +120,7 @@ public class MessageController {
     }
 
     /**
+     * ------------------------------------------------------------------------------------------------------------
      * ps：这里对ResponseBody注解进行解释说明。
      *
      * 在使用Spring MVC或Spring WebFlux进行Web开发时，通常需要将方法的返回值转换为HTTP响应返回给客户端。
@@ -130,10 +131,12 @@ public class MessageController {
      *
      * 需要注意的是，如果使用@RestController注解来代替@Controller注解，则所有的方法默认都会被@ResponseBody注解修饰，
      * 因为@RestController注解本身就是@ResponseBody和@Controller的组合注解。
+     * -------------------------------------------------------------------------------------------------------------
      */
     @RequestMapping(path = "/letter/send", method = RequestMethod.POST)
     @ResponseBody
     public String sendLetter(String toName, String content) {
+        //Integer.valueOf("abc");//验证异常的错误代码
         //判断目标用户是否存在
         User target = userService.findUserByName(toName);
         if(target == null) {

@@ -61,4 +61,9 @@ public class HomeController {
         //直接返回index.html 视图名？这里没有完全理解。
         return "index";
     }
+
+    @RequestMapping(path = "/error", method = RequestMethod.GET)
+    public String getErrorPage() {
+        return "/error/500";
+    }
 }
