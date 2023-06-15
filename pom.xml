@@ -91,6 +91,15 @@
 			<version>2.0.23</version>
 		</dependency>
 
+		<!--redis-->
+		<!--Spring Boot框架中用于与Redis进行集成的起步依赖。它简化了在Spring Boot应用程序中使用Redis的配置和使用过程。-->
+		<!--下面的version可以不用写，Spring Boot 的起步依赖会自动管理依赖项的版本，以确保所选的依赖项与 Spring Boot 版本兼容。-->
+		<!--如果有特定的版本要求或需要显式指定依赖项的版本，您可以添加 <version> 元素并指定所需的版本号。在这种情况下，Maven 将会使用您指定的版本。-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+			<!--<version>2.1.6.RELEASE</version>--> <!--默认是2.1.5.RELEASE-->
+		</dependency>
 
 
 	</dependencies>
