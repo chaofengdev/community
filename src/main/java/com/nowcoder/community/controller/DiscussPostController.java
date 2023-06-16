@@ -6,6 +6,7 @@ import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
@@ -35,6 +36,9 @@ public class DiscussPostController implements CommunityConstant {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private LikeService likeService;
 
     /**
      * 增加某个帖子
@@ -79,6 +83,14 @@ public class DiscussPostController implements CommunityConstant {
         User user = userService.findUserById(post.getUserId());
         model.addAttribute("user",user);
 
+        //新增：点赞相关信息--帖子详情
+        //点赞数量
+        long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, discussPostId);
+        model.addAttribute("likeCount", likeCount);
+        //点赞状态 这里要考虑用户没有登录的情况，直接置为0，否则去查询点赞状态。
+        int likeStatus = hostHolder.getUsers() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUsers().getId(), ENTITY_TYPE_POST, discussPostId);
+        model.addAttribute("likeStatus",likeStatus);
+
         //帖子的回复
         //评论的分页信息--这里实现了分页查询的功能，这里可以体会出Page类设置的好处，能够直接复用前端的分页组件，不需要修改后端任何代码。
         page.setLimit(5);//只显示5条评论，显示效果更好
@@ -99,6 +111,15 @@ public class DiscussPostController implements CommunityConstant {
                 commentVo.put("comment", comment);//评论
                 //评论的作者
                 commentVo.put("user", userService.findUserById(comment.getUserId()));//评论的作者
+
+                //新增：点赞相关信息--帖子评论
+                //点赞数量
+                likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeCount",likeCount);
+                //点赞状态 这里要考虑用户没有登录的情况，直接置为0，否则去查询点赞状态。
+                likeStatus = hostHolder.getUsers() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUsers().getId(), ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeStatus",likeStatus);
+
                 //回复列表--这里需要理解，帖子的评论下还有评论，此为回复。这里感觉数据库表设计的不是很合理，希望后面得到改进。
                 List<Comment> replyList = commentService.findCommentByEntity(ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);//这里本质上不需要分页
                 //回复VO列表
@@ -113,6 +134,13 @@ public class DiscussPostController implements CommunityConstant {
                         //回复目标--这里和前端需要的数据有关，前端需要回复目标的数据
                         User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
                         replyVo.put("target", target);
+                        //新增：点赞相关信息--回复
+                        //点赞数量
+                        likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeCount",likeCount);
+                        //点赞状态 这里要考虑用户没有登录的情况，直接置为0，否则去查询点赞状态。
+                        likeStatus = hostHolder.getUsers() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUsers().getId(), ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeStatus",likeStatus);
                         replyVoList.add(replyVo);
                     }
                 }

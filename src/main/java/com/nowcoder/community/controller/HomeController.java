@@ -4,7 +4,9 @@ import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.DiscussPostService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,12 +19,16 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-public class HomeController {
+public class HomeController implements CommunityConstant{
     @Autowired
-    DiscussPostService discussPostService;
+    private DiscussPostService discussPostService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
+
 
     /**
      * 获取首页帖子，分页展示
@@ -51,6 +57,10 @@ public class HomeController {
                 User user = userService.findUserById(discussPost.getUserId());
                 //用户对象
                 map.put("user",user);
+                //新增：帖子点赞相关
+                long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, discussPost.getId());
+                map.put("likeCount",likeCount);
+
                 discussPosts.add(map);//缺少这个前端不展示帖子信息，因为discussPosts中不存在map
             }
         }
@@ -58,7 +68,7 @@ public class HomeController {
         //添加到model中，返回给前端  这里的discussPosts表示一个集合，集合中保存了若干个map，map中保存了每个帖子对象和用户，前端可以拿到这个集合，并进行相关处理
         model.addAttribute("discussPosts", discussPosts);
         //model.addAttribute("page",page); //这里自动添加，不需要手动添加
-        //直接返回index.html 视图名？这里没有完全理解。
+        //视图名index
         return "index";
     }
 
