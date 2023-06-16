@@ -27,7 +27,8 @@ public class Comment {
     //目标ID，表示评论所针对的目标对象的标识
     //它用于标识评论的目标对象，这个目标对象可以是评论针对的另一个实体，如回复某个评论或回复某个用户的评论。
     //通过这个字段，可以建立评论与目标对象之间的关联，实现评论的层级结构或对特定评论的回复功能。
-    //例子：entityId为ENTITY_TYPE_COMMENT表示帖子下的评论，entityId表示具体是哪个评论，targetId表示具体对哪个用户评论
+    //例子：entityType为ENTITY_TYPE_POST（1）表示帖子下的评论，entityId（帖子id）表示具体对哪个帖子进行评论，targetId为0用不到；
+    //当entityType为ENTITY_TYPE_COMMENT（2）表示对评论的的回复，entityId（评论）表示具体对评论进行回复，targetId可以不为0，表示用户id，即在评论下对该用户的回复进行回复。
     private int targetId;
 
     // 评论内容
