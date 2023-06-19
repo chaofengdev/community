@@ -28,13 +28,13 @@ public class LikeController {
 
     @RequestMapping(path = "/like", method = RequestMethod.POST)
     @ResponseBody
-    public String like(int entityType, int entityId) {
+    public String like(int entityType, int entityId, int entityUserId) {
         User user = hostHolder.getUsers();
         //...
         //这里可以使用拦截器，进行用户的校验工作，即只能授权已登录用户进行点赞；后面会通过spring security进行重构。
 
         //点赞
-        likeService.like(user.getId(), entityType, entityId);
+        likeService.like(user.getId(), entityType, entityId, entityUserId);
 
         //数量
         Long likeCount = likeService.findEntityLikeCount(entityType, entityId);

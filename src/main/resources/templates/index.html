@@ -41,7 +41,7 @@
 									<img th:src="${loginUser.headerUrl}" class="rounded-circle" style="width:30px;"/> <!--动态展现-->
 								</a>
 								<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-									<a class="dropdown-item text-center" href="site/profile.html">个人主页</a>
+									<a class="dropdown-item text-center" th:href="@{|/user/profile/${loginUser.id}|}">个人主页</a>
 									<a class="dropdown-item text-center" th:href="@{/user/setting}">账号设置</a>
 									<a class="dropdown-item text-center" th:href="@{/logout}">退出登录</a> <!--退出路径-->
 									<div class="dropdown-divider"></div>
@@ -121,7 +121,7 @@
 				<ul class="list-unstyled">
 					<!--discussPosts集合保存了若干个map，每个map保存帖子对象和用户对象，这个discussPosts集合会被返回到前端中，详细见HomeController-->
 					<li class="media pb-3 pt-3 mb-3 border-bottom" th:each="map:${discussPosts}"> <!--这里模板引擎会自动取出discussPosts集合中的每一个map，将map给每一行列表，涉及前端知识点-->
-						<a href="site/profile.html">
+						<a th:href="@{|/user/profile/${map.user.id}|}">
 							<img th:src="${map.user.headerUrl}" class="mr-4 rounded-circle" alt="用户头像" style="width:50px;height:50px;"> <!--图片的链接从后端获取-->
 						</a>
 						<div class="media-body">
