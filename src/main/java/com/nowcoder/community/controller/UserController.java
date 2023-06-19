@@ -132,6 +132,14 @@ public class UserController {
         } //不需要在finally关闭流，因为需要考虑变量作用范围。直接使用Java7的语法，java会自动帮我们关闭。
     }
 
+
+    /**
+     * 根据给定的userId获取用户的个人资料页面，并在模型中添加用户信息和点赞数量，
+     * 最后返回视图名为"/site/profile"的页面。
+     * @param userId
+     * @param model
+     * @return
+     */
     @RequestMapping(path = "/profile/{userId}", method = RequestMethod.GET)
     public String getProfilePage(@PathVariable("userId") int userId, Model model) {
         User user = userService.findUserById(userId);
