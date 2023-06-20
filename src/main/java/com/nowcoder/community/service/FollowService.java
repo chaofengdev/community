@@ -1,5 +1,7 @@
 package com.nowcoder.community.service;
 
+import com.nowcoder.community.entity.User;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -9,11 +11,16 @@ import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.*;
+
 @Service
-public class FollowService {
+public class FollowService implements CommunityConstant {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private UserService userService;
 
     //关注
     public void follow(int userId, int entityType, int entityId) {
@@ -71,5 +78,46 @@ public class FollowService {
         //score是用于获取`有序集合`中指定成员的`分数`的方法 这里用来判断entityId是否存在
         //在Redis中，有序集合（Sorted Sets）是一种数据结构，它提供了有序排列的成员，每个成员都关联着一个分数（score）。
         return redisTemplate.opsForZSet().score(followeeKey, entityId) != null;
+    }
+
+    //查询某用户关注的人
+    public List<Map<String,Object>> findFollowees(int userId, int offset, int limit) {
+        String followeeKey = RedisKeyUtil.getFolloweeKey(userId, ENTITY_TYPE_USER);
+        //reverseRange(key,start,end) 倒序排列指定区间元素。
+        Set<Integer> targetIds = redisTemplate.opsForZSet().reverseRange(followeeKey, offset, offset + limit - 1);
+
+        if(targetIds == null) {
+            return null;
+        }
+
+        List<Map<String,Object>> list = new ArrayList<>();
+        for(Integer targetId : targetIds) {
+            Map<String, Object> map = new HashMap<>();
+            User user = userService.findUserById(targetId);
+            map.put("user", user);
+            Double score = redisTemplate.opsForZSet().score(followeeKey, targetId);//时间就是score
+            map.put("followTime", new Date(score.longValue()));//longValue()将对象转换为long类型数值
+            list.add(map);
+        }
+        return list;
+    }
+
+    //查询某用户的粉丝
+    public List<Map<String,Object>> findFollowers(int userId, int offset, int limit) {
+        String followerKey = RedisKeyUtil.getFollowerKey(ENTITY_TYPE_USER,userId);
+        Set<Integer> targetIds = redisTemplate.opsForZSet().reverseRange(followerKey, offset, offset + limit - 1);
+        if(targetIds == null) {
+            return null;
+        }
+        List<Map<String,Object>> list = new ArrayList<>();
+        for(Integer targetId : targetIds) {
+            Map<String, Object> map = new HashMap<>();
+            User user = userService.findUserById(targetId);
+            map.put("user", user);
+            Double score = redisTemplate.opsForZSet().score(followerKey, targetId);//时间就是score
+            map.put("followTime", new Date(score.longValue()));//longValue()将对象转换为long类型数值
+            list.add(map);
+        }
+        return list;
     }
 }
