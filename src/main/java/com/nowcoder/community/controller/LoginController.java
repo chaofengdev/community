@@ -179,6 +179,12 @@ public class LoginController {
         //检查账号、密码
         int expiredSeconds = rememberme ? REMEMBER_EXPIRED_SECONDS : DEFAULT_EXPIRED_SECONDS;//根据是否勾选保存，得到凭证的保存时间
         Map<String, Object> map = userService.login(username, password, expiredSeconds);
+        //为什么要将ticket加到cookie中并发送到客户端？
+        //为了在客户端与服务器之间建立会话并实现用户身份验证和状态管理。
+        //在客户端发送请求时，浏览器会自动将Cookie作为请求头的一部分发送到服务器，服务器就可以读取其中的凭证，并根据凭证判断用户的身份和权限。
+        //详见拦截器LoginTicketInterceptor，preHandle里每次根据cookie中的ticket查出user，将user存在hostHolder对象中，
+        //postHandle里将user数据存到model中，用于模板引擎，请求结束后，将ThreadLocal中保存的数据清除；
+        //这样可以实现持久化的会话管理，允许用户在一段时间内保持登录状态，而无需在每个请求中都重新进行身份验证。
         if(map.containsKey("ticket")) {//包含凭证
             Cookie cookie = new Cookie("ticket", map.get("ticket").toString());//将凭证保存到cookie发送给客户端
             cookie.setPath(contextPath);//路径

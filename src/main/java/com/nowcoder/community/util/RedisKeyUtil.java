@@ -15,7 +15,10 @@ public class RedisKeyUtil {
     private static final String PREFIX_FOLLOWEE = "followee";//关注
     private static final String PREFIX_FOLLOWER = "follower";//粉丝
 
+    //验证码
     private static final String PREFIX_KAPTCHA = "kaptcha";
+    //登录凭证
+    private static final String PREFIX_TICKET = "ticket";
 
     // 某个实体的（收到的）赞
     // like:entity:entityType:entityId -> set(userId)
@@ -45,5 +48,10 @@ public class RedisKeyUtil {
     // 登陆验证吗（重构）
     public static String getKaptchaKey(String owner) {//owner临时凭证，用来标识当前待登陆用户，很快失效
         return PREFIX_KAPTCHA + SPLIT + owner;
+    }
+
+    // 登录的凭证
+    public static String getTicketKey(String ticket) {
+        return PREFIX_TICKET + SPLIT + ticket;
     }
 }

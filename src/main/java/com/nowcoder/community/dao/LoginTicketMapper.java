@@ -4,6 +4,7 @@ import com.nowcoder.community.entity.LoginTicket;
 import org.apache.ibatis.annotations.*;
 
 @Mapper //spring容器会自动实例化其实现类的对象，并管理该对象
+@Deprecated //用于标记已过时或不推荐使用的代码元素，向开发人员发出警告，表明该代码元素在未来的版本中可能会被移除或替代，建议不再使用。
 public interface LoginTicketMapper {
 
     /**

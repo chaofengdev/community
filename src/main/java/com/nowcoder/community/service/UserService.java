@@ -6,9 +6,11 @@ import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.MailClient;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -32,14 +34,17 @@ public class UserService {
     @Autowired
     private TemplateEngine templateEngine;//邮件中需要呈现html数据，发送带有html内容的邮件需要这个对象
 
-    @Autowired
-    private LoginTicketMapper loginTicketMapper;//登录验证功能
+//    @Autowired
+//    private LoginTicketMapper loginTicketMapper;//登录验证功能
 
     @Value("${community.path.domain}")
     private String domain;//域名，这里指的是邮件内的验证网址，点击该网址跳转到验证页面，注意这里只有ip地址和端口号
 
     @Value("${server.servlet.context-path}")
     private String contextPath;//项目名称，用于和上面的domain拼接成完整的访问路径
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 根据id查询用户
@@ -189,9 +194,12 @@ public class UserService {
         LoginTicket loginTicket = new LoginTicket();
         loginTicket.setUserId(user.getId());
         loginTicket.setTicket(CommunityUtil.generateUUID());//随机生成凭证
-        loginTicket.setStatus(0);//0表示未启用，1表示启用？
+        loginTicket.setStatus(0);//0表示有效，1表示无效
         loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * expiredSeconds));
-        loginTicketMapper.insertLoginTicket(loginTicket);
+        //loginTicketMapper.insertLoginTicket(loginTicket);//重构
+        //将loginTicket对象序列化成字符串后保存到redis数据库中
+        String ticketKey = RedisKeyUtil.getTicketKey(loginTicket.getTicket());
+        redisTemplate.opsForValue().set(ticketKey, loginTicket);//loginTicket对象序列化后存入redis
 
         map.put("ticket", loginTicket.getTicket());//Controller使用的数据--凭证
         return map;
@@ -202,11 +210,25 @@ public class UserService {
      * @param ticket
      */
     public void logout(String ticket) {
-        loginTicketMapper.updateStatus(ticket, 1);//凭证置为无效
+        //loginTicketMapper.updateStatus(ticket, 1);//凭证置为无效
+        //重构，从ticketKey中取出loginTicket，将loginTicket修改登录状态status后，重新存入ticketKey中
+        //chatgpt：访问Redis数据库，找到特定凭证对应的登录凭证对象，并将其状态标记为失效。然后，更新后的登录凭证对象被再次存储回Redis中，以确保失效状态的生效。
+        String ticketKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
+        loginTicket.setStatus(1);//1表示用户登录状态失效
+        redisTemplate.opsForValue().set(ticketKey, loginTicket);
     }
 
+    /**
+     * 根据ticket字符串查询凭证
+     * @param ticket
+     * @return
+     */
     public LoginTicket findLoginTicket(String ticket) {
-        return loginTicketMapper.selectByTicket(ticket);
+        //return loginTicketMapper.selectByTicket(ticket);
+        String ticketKey = RedisKeyUtil.getTicketKey(ticket);
+        return (LoginTicket) redisTemplate.opsForValue().get(ticketKey);//注意默认返回的都是Object，所以需要强转。
+
     }
 
     /**
