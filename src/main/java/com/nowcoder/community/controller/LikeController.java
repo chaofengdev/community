@@ -1,7 +1,10 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.LikeService;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +21,7 @@ import java.util.Map;
  * 并返回点赞数量和点赞状态的 JSON 格式数据给客户端。
  */
 @Controller
-public class LikeController {
+public class LikeController implements CommunityConstant {
 
     @Autowired
     private LikeService likeService;
@@ -26,9 +29,12 @@ public class LikeController {
     @Autowired
     private HostHolder hostHolder;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     @RequestMapping(path = "/like", method = RequestMethod.POST)
     @ResponseBody
-    public String like(int entityType, int entityId, int entityUserId) {
+    public String like(int entityType, int entityId, int entityUserId, int postId) {//重构，增加postId
         User user = hostHolder.getUsers();
         //...
         //这里可以使用拦截器，进行用户的校验工作，即只能授权已登录用户进行点赞；后面会通过spring security进行重构。
@@ -42,9 +48,23 @@ public class LikeController {
         //状态
         int likeStatus = likeService.findEntityLikeStatus(user.getId(),entityType, entityId);
 
+        //返回的结果
         Map<String, Object> map = new HashMap<>();
         map.put("likeCount", likeCount);
         map.put("likeStatus", likeStatus);
+
+        // 触发点赞事件
+        if(likeStatus == 1) {//只有点赞会触发，取消点赞不触发。
+            Event event = new Event()
+                    .setTopic(TOPIC_LIKE)
+                    .setUserId(hostHolder.getUsers().getId())
+                    .setEntityType(entityType)
+                    .setEntityId(entityId)
+                    .setEntityUserId(entityUserId)
+                    .setData("postId", postId);//重构like方法，要求传入点赞的帖子id 为了前端能找到对应的帖子
+            eventProducer.fireEvent(event);
+        }
+
         return CommunityUtil.getJSONString(0, null, map);//正确无提示，与前端页面需求有关。
     }
 }

@@ -37,24 +37,32 @@ import java.io.PrintWriter;
  * 同样，拦截器也是AOP思想的一种实现，Spring AOP也是AOP思想的一种实现。
  * ------------------------------------------------------------------------------------------------------------------
  */
+
+/**
+ * 统一处理控制器中出现的异常，并提供适当的错误响应或重定向。
+ * 这样可以简化异常处理的代码，并提供一致的错误处理机制。
+ */
 @ControllerAdvice(annotations = Controller.class) //表明对所有@Controller注解的类生效
 public class ExceptionAdvice {
     private static final Logger logger = LoggerFactory.getLogger(ExceptionAdvice.class);
 
     @ExceptionHandler({Exception.class})//表示对Exception异常生效，即对所有异常生效
     public void handleException(Exception e, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //记录异常信息到日志中
         logger.error("服务器发生异常：" + e.getMessage());//将拼接后的错误消息作为日志信息记录下来，具体记录方式在配置文件logback.xml中
         for(StackTraceElement element : e.getStackTrace()) {//打印异常堆栈轨迹信息到日志中
             logger.error(element.toString());
         }
         //根据异步请求还是正常请求区分返回数据
-        //对于异步请求，返回一个包含错误信息的 JSON 字符串；对于正常请求，将请求重定向到错误处理页面或错误提示页面，以展示更友好的错误信息给用户。
+        //对于异步请求，返回一个包含错误信息的 JSON 字符串
         String xRequestedWith = request.getHeader("x-requested-with");//获取请求头中的 "x-requested-with" 字段的值，该字段用于标识请求是异步请求还是正常请求。
         if("XMLHttpRequest".equals(xRequestedWith)) {//"XMLHttpRequest" 是一个常见的 HTTP 请求头字段，用于标识请求是通过 XMLHttpRequest 对象发起的异步请求。XMLHttpRequest 是一种用于在后台与服务器进行数据交互的技术，常用于实现 AJAX（Asynchronous JavaScript and XML）方式的异步通信。
             response.setContentType("application/plain;charset=utf-8");//设置响应的内容类型为 "application/plain;charset=utf-8"，表示响应内容为纯文本
             PrintWriter writer = response.getWriter();
             writer.write(CommunityUtil.getJSONString(1, "服务器异常！"));//将自定义的错误信息写入响应中
-        } else {
+        }
+        //对于正常请求，将请求重定向到错误页面
+        else {
             response.sendRedirect(request.getContextPath() + "/error");//将请求重定向到 "/error" 路径。这个路径对应的方法是getErrorPage()。
         }
     }
