@@ -51,7 +51,7 @@ public class EventConsumer implements CommunityConstant {
         message.setCreateTime(new Date());
         // 创建一个 content 的 Map 对象，用于存储通知的内容。将 Event 对象中的相关字段值存储到 content 中。
         Map<String, Object> content = new HashMap<>();
-        content.put("userId", event.getUserId());
+        content.put("userId", event.getUserId());//A给B点赞，content里保存A的id，便于B解析content的json数据获取A的信息
         content.put("entityType", event.getEntityType());
         content.put("entityId", event.getEntityId());
         if(!event.getData().isEmpty()) {

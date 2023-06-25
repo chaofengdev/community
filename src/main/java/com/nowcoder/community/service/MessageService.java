@@ -9,6 +9,9 @@ import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 
+/**
+ * 私信、通知
+ */
 @Service
 public class MessageService {
     @Autowired
@@ -52,4 +55,20 @@ public class MessageService {
     public int readMessage(List<Integer> ids) {
         return messageMapper.updateStatus(ids, 1);//`status`设置为1表示`已读`
     }
+
+    //查询某个主题下最新的通知
+    public Message findLatestNotice(int userId, String topic) {
+        return messageMapper.selectLatestNotice(userId, topic);
+    }
+
+    //查询某个主题下通知的数量
+    public int findNoticeCount(int userId, String topic) {
+        return messageMapper.selectNoticeCount(userId, topic);
+    }
+
+    //查询未读的通知的数量
+    public int findNoticeUnreadCount(int userId, String topic) {
+        return messageMapper.selectNoticeUnreadCount(userId, topic);
+    }
+
 }

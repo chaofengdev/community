@@ -1,10 +1,12 @@
 package com.nowcoder.community.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.nowcoder.community.entity.Message;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +16,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.*;
 
 @Controller
-public class MessageController {
+public class MessageController implements CommunityConstant {
 
     @Autowired
     private MessageService messageService;
@@ -53,9 +56,12 @@ public class MessageController {
             }
         }
         model.addAttribute("conversations", conversations);
-        //查询未读消息数量
+        //查询未读私信数量
         int letterUnreadCount = messageService.findLetterUnreadCount(user.getId(), null);
         model.addAttribute("letterUnreadCount", letterUnreadCount);
+        //查询未读通知数量
+        int noticeUnreadCount = messageService.findNoticeUnreadCount(user.getId(), null);
+        model.addAttribute("noticeUnreadCount", noticeUnreadCount);
 
         return "/site/letter";
     }
@@ -133,6 +139,7 @@ public class MessageController {
      * 因为@RestController注解本身就是@ResponseBody和@Controller的组合注解。
      * -------------------------------------------------------------------------------------------------------------
      */
+    //发送私信
     @RequestMapping(path = "/letter/send", method = RequestMethod.POST)
     @ResponseBody
     public String sendLetter(String toName, String content) {
@@ -158,6 +165,91 @@ public class MessageController {
         messageService.addMessage(message);
         //返回成功插入的json信息
         return CommunityUtil.getJSONString(0);//0表示发送成功
+    }
+
+    //通知列表--三种通知存在部分代码复制粘贴的问题，需要重构的部分。
+    @RequestMapping(path = "/notice/list", method = RequestMethod.GET)
+    public String getNoticeList(Model model) {
+        User user = hostHolder.getUsers();
+
+        //查询评论类通知
+        Message message_comment = messageService.findLatestNotice(user.getId(), TOPIC_COMMENT);
+        if(message_comment != null) {
+            Map<String,Object> messageVO = new HashMap<>();//被模板引用并显示数据的对象
+            messageVO.put("message", message_comment);
+
+            //HtmlUtils.htmlUnescape 方法用于将这些 HTML 实体编码的文本转换回普通文本格式。它会将`&quot;`转换回`"`
+            //为什么需要将特定字符转义成实体编码？
+            //当这些特定字符需要在 HTML 内容中作为普通文本而不是标签或属性进行显示时，就需要进行转义或编码。这样做是为了避免与 HTML 结构产生冲突。
+            //数据库中message表的content字段，为什么是“{&quot;entityType&quot;:1,&quot;entityId&quot;:234,&quot;postId&quot;:234,&quot;userId&quot;:162}”
+            //可能是出于安全考虑？？--这里有疑问，感觉这里不是表单，没有必要转义。
+            String content = HtmlUtils.htmlUnescape(message_comment.getContent());//将实体编码转义成特定字符，恢复json数据
+            Map<String, Object> data = JSONObject.parseObject(content, HashMap.class);//json字符串转成map集合
+
+            messageVO.put("user", userService.findUserById((Integer) data.get("userId")));//A评论B，系统通知B，这个userId是A的id
+            messageVO.put("entityType", data.get("entityType"));
+            messageVO.put("entityId", data.get("entityId"));
+            messageVO.put("postId", data.get("postId"));
+
+            int count = messageService.findNoticeCount(user.getId(), TOPIC_COMMENT);
+            messageVO.put("count", count);
+            int unread = messageService.findNoticeUnreadCount(user.getId(), TOPIC_COMMENT);
+            messageVO.put("unread", unread);
+            model.addAttribute("commentNotice", messageVO);
+        }
+
+
+        //查询点赞类通知
+        Message message_like = messageService.findLatestNotice(user.getId(), TOPIC_LIKE);
+        if(message_like != null) {
+            Map<String,Object> messageVO = new HashMap<>();
+            messageVO.put("message", message_like);
+
+            String content = HtmlUtils.htmlUnescape(message_like.getContent());
+            Map<String, Object> data = JSONObject.parseObject(content, HashMap.class);
+
+            messageVO.put("user", userService.findUserById((Integer) data.get("userId")));
+            messageVO.put("entityType", data.get("entityType"));
+            messageVO.put("entityId", data.get("entityId"));
+            messageVO.put("postId", data.get("postId"));
+
+            int count = messageService.findNoticeCount(user.getId(), TOPIC_LIKE);
+            messageVO.put("count", count);
+            int unread = messageService.findNoticeUnreadCount(user.getId(), TOPIC_LIKE);
+            messageVO.put("unread", unread);
+            model.addAttribute("likeNotice", messageVO);
+        }
+
+        //查询关注类通知
+        Message message_follow = messageService.findLatestNotice(user.getId(), TOPIC_FOLLOW);
+        if(message_like != null) {
+            Map<String,Object> messageVO = new HashMap<>();
+            messageVO.put("message", message_follow);
+
+            String content = HtmlUtils.htmlUnescape(message_follow.getContent());
+            Map<String, Object> data = JSONObject.parseObject(content, HashMap.class);
+
+            messageVO.put("user", userService.findUserById((Integer) data.get("userId")));
+            messageVO.put("entityType", data.get("entityType"));
+            messageVO.put("entityId", data.get("entityId"));
+            //messageVO.put("postId", data.get("postId"));//业务逻辑中关注某个用户不需要帖子信息
+
+            int count = messageService.findNoticeCount(user.getId(), TOPIC_FOLLOW);
+            messageVO.put("count", count);
+            int unread = messageService.findNoticeUnreadCount(user.getId(), TOPIC_FOLLOW);
+            messageVO.put("unread", unread);
+            model.addAttribute("followNotice", messageVO);
+        }
+
+        //查询未读消息数量
+        //未读朋友私信
+        int letterUnreadCount = messageService.findLetterUnreadCount(user.getId(), null);
+        model.addAttribute("letterUnreadCount", letterUnreadCount);
+        //未读系统通知
+        int noticeUnreadCount = messageService.findNoticeUnreadCount(user.getId(), null);
+        model.addAttribute("noticeUnreadCount", noticeUnreadCount);
+
+        return "/site/notice";
     }
 
 }

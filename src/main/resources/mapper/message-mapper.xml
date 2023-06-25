@@ -97,4 +97,40 @@
             #{id}
         </foreach>
     </update>
+
+    <!--查询某个主题下最新的通知-->
+    <select id="selectLatestNotice" resultType="Message">
+        select <include refid="selectFields"></include>
+        from message
+        where id in (
+            select max(id) from message
+            where status != 2
+            and from_id = 1
+            and to_id = #{userId}
+            and conversation_id = #{topic}
+        )
+    </select>
+
+    <!--查询某个主题下通知的数量-->
+    <select id="selectNoticeCount" resultType="int">
+        select count(id) from message
+        where status != 2
+        and from_id = 1
+        and to_id = #{userId}
+        and conversation_id = #{topic}
+    </select>
+
+    <!--查询未读的通知的数量--> <!--status 0已读，1未读，2失效-->
+    <!--业务需求上，既需要查某个主题的未读消息数量，也需要查询所有主题的未读消息数量，两个解决方案：-->
+    <!--1.多次查询某个主题的未读消息数量，相加得到总数量；2.动态sql，当需要查询某个主题时，限定查询条件为某个特定主题。-->
+    <!--在 MyBatis 中，<if> 标签的内容会被解析为条件表达式，并根据条件的真假动态生成 SQL 查询语句的一部分。这样可以根据不同的条件灵活地构建查询语句。-->
+    <select id="selectNoticeUnreadCount" resultType="int">
+        select count(id) from message
+        where status = 0
+        and from_id = 1
+        and to_id = #{userId}
+        <if test="topic!=null">
+            and conversation_id = #{topic}
+        </if>
+    </select>
 </mapper>
