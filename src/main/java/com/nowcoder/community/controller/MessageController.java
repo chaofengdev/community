@@ -112,6 +112,8 @@ public class MessageController implements CommunityConstant {
     }
 
     //辅助方法：将集合中所有消息中的未读消息的id提取到新集合中
+    //该方法看起来很怪，其实是为了提取未读消息的id，再根据id将这些未读消息设置成已读，
+    //即将message中的status字段改为1表示已读。总之该方法是个辅助方法，简化了主controller方法中的逻辑表达。
     private List<Integer> getLetterIds(List<Message> letterList) {
         List<Integer> ids = new ArrayList<>();
         if(letterList != null) {
@@ -250,6 +252,54 @@ public class MessageController implements CommunityConstant {
         model.addAttribute("noticeUnreadCount", noticeUnreadCount);
 
         return "/site/notice";
+    }
+
+    //通知详情
+    /**
+     * 该方法的作用是根据指定主题(topic)获取用户的通知详情，并将相关数据存储在Model中供视图渲染使用。
+     * 同时，该方法还负责将用户未读的通知消息标记为已读。
+     * @param topic
+     * @param page
+     * @param model
+     * @return
+     */
+    @RequestMapping(path = "/notice/detail/{topic}", method = RequestMethod.GET)
+    public String getNoticeDetail(@PathVariable("topic") String topic, Page page, Model model) {
+        User user = hostHolder.getUsers();
+
+        page.setLimit(5);
+        page.setPath("/notice/detail/" + topic);
+        page.setRows(messageService.findNoticeCount(user.getId(), topic));
+
+        List<Message> noticeList = messageService.findNotices(user.getId(), topic, page.getOffset(), page.getLimit());//分页查询通知消息
+        List<Map<String, Object>> noticeVOList = new ArrayList<>();
+        if(noticeList != null) {
+            for(Message notice : noticeList) {
+                Map<String, Object> map = new HashMap<>();
+                //通知
+                map.put("notice", notice);
+                //内容
+                String content = HtmlUtils.htmlUnescape(notice.getContent());
+                Map<String, Object> data = JSONObject.parseObject(content, HashMap.class);
+                map.put("user", userService.findUserById((Integer) data.get("userId")));
+                map.put("entityType", data.get("entityType"));
+                map.put("entityId", data.get("entityId"));
+                map.put("postId", data.get("postId"));//HashMap的get(key)方法获取指定键的值时，如果该键不存在于HashMap中，get()方法将返回null。
+                //通知作者-这里通知的作者其实是系统管理员
+                map.put("fromUser", userService.findUserById(notice.getFromId()));
+
+                noticeVOList.add(map);
+            }
+            model.addAttribute("notices", noticeVOList);
+        }
+
+        //设置已读
+        List<Integer> ids = getLetterIds(noticeList);
+        if(!ids.isEmpty()) {
+            messageService.readMessage(ids);
+        }
+
+        return "/site/notice-detail";
     }
 
 }

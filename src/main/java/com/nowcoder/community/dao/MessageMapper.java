@@ -64,4 +64,14 @@ public interface MessageMapper {
      *=======================================
      */
     int selectNoticeUnreadCount(int userId, String topic);
+
+    /**
+     *=======================================
+     * 查询某个主题包含的通知列表，
+     * 支持分页
+     *=======================================
+     */
+    List<Message> selectNotices(int userId, String topic, int offset, int limit);
+
+
 }

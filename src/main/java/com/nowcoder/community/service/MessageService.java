@@ -71,4 +71,9 @@ public class MessageService {
         return messageMapper.selectNoticeUnreadCount(userId, topic);
     }
 
+    //查询某个主题包含的通知列表，分页查询
+    public List<Message> findNotices(int userId, String topic, int offset, int limit) {
+        return messageMapper.selectNotices(userId, topic, offset, limit);
+    }
+
 }
