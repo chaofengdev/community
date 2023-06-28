@@ -102,13 +102,20 @@
 		</dependency>
 
 		<!--kafka-->
-		<!--Kafka是一种分布式流处理平台，由Apache软件基金会开发和维护。它具有高吞吐量、可扩展性和容错性，被广泛用于构建实时数据流应用程序和数据管道。-->
+		<!--分布式`流处理平台`，由Apache软件基金会开发和维护。它具有高吞吐量、可扩展性和容错性，被广泛用于构建实时数据流应用程序和数据管道。-->
 		<!--自Kafka 2.8版本开始，Kafka已经移除对Zookeeper的依赖，采用自己的内部元数据存储。-->
 		<!--omit the version and Boot will automatically bring in the correct version that is compatible with your Boot version-->
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
 			<!--<version>2.2.7.RELEASE</version>-->
+		</dependency>
+
+		<!--Elasticsearch-->
+		<!--分布式的`搜索引擎`和`分析引擎`，用于高效存储、搜索和分析大规模数据。-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
 		</dependency>
 
 	</dependencies>
