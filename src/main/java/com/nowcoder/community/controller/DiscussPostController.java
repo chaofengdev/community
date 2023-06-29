@@ -1,9 +1,7 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.entity.Comment;
-import com.nowcoder.community.entity.DiscussPost;
-import com.nowcoder.community.entity.Page;
-import com.nowcoder.community.entity.User;
+import com.nowcoder.community.entity.*;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.LikeService;
@@ -40,8 +38,11 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private LikeService likeService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     /**
-     * 增加某个帖子
+     * 发布帖子
      * @param title
      * @param content
      * @return
@@ -61,7 +62,18 @@ public class DiscussPostController implements CommunityConstant {
         post.setContent(content);
         post.setCreateTime(new Date());
         //在数据库中插入帖子对象
-        discussPostService.addDiscussPost(post);
+        discussPostService.addDiscussPost(post);//ps：这里要求主键自增后，自动回填到对象中，因为后面用到了post.getId()
+
+        // 触发发帖事件
+        //事件对象
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(user.getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(post.getId());
+        //触发事件
+        eventProducer.fireEvent(event);
+
         //返回插入成功的消息--json字符串
         //报错的情况将来统一处理
         return CommunityUtil.getJSONString(0, "发布成功！");

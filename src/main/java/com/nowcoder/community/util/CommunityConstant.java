@@ -5,7 +5,7 @@ package com.nowcoder.community.util;
  */
 public interface CommunityConstant {
 
-    //激活相关的常量
+    // 激活相关的常量
     /**
      * 激活成功
      */
@@ -21,7 +21,10 @@ public interface CommunityConstant {
      */
     int ACTIVATION_FAILURE = 2;
 
-    //登录相关的常量
+
+
+
+    // 登录相关的常量
     /**
      * 默认状态的登录凭证的超时时间 12小时
      */
@@ -32,6 +35,10 @@ public interface CommunityConstant {
      */
     int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 100;
 
+
+
+
+    // 实体类型
     /**
      * 实体类型：帖子
      */
@@ -47,21 +54,24 @@ public interface CommunityConstant {
      */
     int ENTITY_TYPE_USER = 3;
 
+
     /**
-     * 主题：评论
+     * 消息队列的主题
      */
+    // 主题：评论
     String TOPIC_COMMENT = "comment";
-
-    /**
-     * 主题：点赞
-     */
+    // 主题：点赞
     String TOPIC_LIKE = "like";
+    // 主题：关注
+    String TOPIC_FOLLOW = "follow";
+    // 主题：发帖
+    String TOPIC_PUBLISH = "publish";
 
     /**
-     * 主题：关注
+     * 其他常量
      */
-    String TOPIC_FOLLOW = "follow";
-
     //系统用户id
     int SYSTEM_USER_ID = 1;
+
+
 }

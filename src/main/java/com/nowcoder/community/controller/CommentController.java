@@ -32,6 +32,12 @@ public class CommentController implements CommunityConstant {
     @Autowired
     private DiscussPostService discussPostService;
 
+    /**
+     * 发布评论
+     * @param discussPostId
+     * @param comment
+     * @return
+     */
     @RequestMapping(path = "/add/{discussPostId}", method = RequestMethod.POST)
     public String addComment(@PathVariable("discussPostId") int discussPostId, Comment comment) {
         //帖子
@@ -60,8 +66,20 @@ public class CommentController implements CommunityConstant {
             event.setEntityUserId(target.getUserId());
         }
 
-        // 触发事件，将事件发送到事件队列进行处理
+        // 触发评论事件，将事件发送到事件队列进行处理
         eventProducer.fireEvent(event);
+
+        if(comment.getEntityType() == ENTITY_TYPE_POST) {//判断评论为对帖子的评论
+            // 触发发帖事件
+            //事件对象
+            event = new Event()
+                    .setTopic(TOPIC_PUBLISH)
+                    .setUserId(comment.getUserId())
+                    .setEntityType(ENTITY_TYPE_POST)
+                    .setEntityId(discussPostId);
+            //触发事件
+            eventProducer.fireEvent(event);
+        }
 
         //重定向到帖子详情页面
         //关于重定向，我们评论后还要再查看这条帖子详情，就相当于再发送一个查看帖子详情的请求
