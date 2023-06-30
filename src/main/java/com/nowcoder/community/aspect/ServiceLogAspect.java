@@ -23,8 +23,13 @@ import java.util.Date;
  * 使用 RequestContextHolder.getRequestAttributes() 可以在任何地方获取当前请求的属性对象，而无需传递 HttpServletRequest 对象作为参数。
  * 返回的请求属性对象是一个 ServletRequestAttributes 类型的实例，它是 ServletRequestAttributes 类的子类，提供了更具体的方法来访问请求属性。
  */
+
+/**
+ * 在Spring AOP中，通过创建一个类并使用@Aspect注解进行标记，该类就成为一个切面。
+ * 切面类中定义了通知（Advice）和切点（Pointcut），用于描述横切关注点在何处和如何应用于目标对象。
+ */
 @Component
-@Aspect
+@Aspect //定义切面Aspect
 public class ServiceLogAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceLogAspect.class);
@@ -34,6 +39,7 @@ public class ServiceLogAspect {
     public void pointcut() {
     }
 
+    //前置通知Before Advice
     @Before("pointcut()")
     public void before(JoinPoint joinPoint) {//通过 joinPoint 参数，您可以获取与连接点相关的信息，例如被拦截的方法的签名、方法的参数等。
         //日志格式：用户[167.221.32.44]，在[xxx]，访问了[com.nowcoder.community.service.xxx()].
