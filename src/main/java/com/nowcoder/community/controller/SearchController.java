@@ -35,7 +35,7 @@ public class SearchController implements CommunityConstant {
     // search?keyword=xxx
     @RequestMapping(path = "/search", method = RequestMethod.GET)
     public String search(String keyword, Page page, Model model) {
-        // 搜索帖子 这里同名的类，有完整限定名
+        // 搜索帖子 完整限定名，用于区分不同类
         org.springframework.data.domain.Page<DiscussPost> searchResult =
                 elasticsearchService.searchDiscussPost(keyword, page.getCurrent() - 1, page.getLimit());//当前页的起始为0
         // 聚合数据
