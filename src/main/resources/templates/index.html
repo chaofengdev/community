@@ -3,6 +3,13 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<!--访问该页面时，在此处手动生成CSRF令牌-->
+	<!--<meta> 标签是用于在 HTML 文档中定义元数据（metadata）的一种标签。它通常位于文档的 <head> 部分，并提供有关文档的信息，而不会在页面中直接显示。-->
+	<!--在 <meta> 标签中，name 和 content 是两个属性，用于定义元数据的名称和内容。-->
+	<!--<meta name="_csrf" th:content="${_csrf.token}"> &lt;!&ndash;存储 CSRF 令牌的值（token）&ndash;&gt;
+	<meta name="_csrf_header" th:content="${_csrf.headerName}"> &lt;!&ndash;存储 CSRF 请求头的名称（headerName）&ndash;&gt;-->
+
 	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" th:href="@{/css/global.css}" /> <!--指定正确的路径-->

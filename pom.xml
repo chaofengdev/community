@@ -118,6 +118,14 @@
 			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
 		</dependency>
 
+		<!--spring security-->
+		<!--身份认证和授权框架，用于保护基于spring的应用程序。-->
+		<!--核心功能包括：身份认证、授权、攻击防护、会话管理、安全事件和扩展点。-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>

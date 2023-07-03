@@ -3,7 +3,7 @@ package com.nowcoder.community.entity;
 import java.util.Date;
 
 /**
- * 对应数据库中
+ * 对应数据库中的表login_ticket
  */
 public class LoginTicket {
     //对应主键

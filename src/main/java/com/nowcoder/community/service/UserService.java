@@ -11,14 +11,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.nowcoder.community.util.CommunityConstant.*;
@@ -279,5 +277,28 @@ public class UserService {
     private void clearCache(int userId) {
         String userKey = RedisKeyUtil.getUserKey(userId);
         redisTemplate.delete(userKey);
+    }
+
+
+    // 获取给定用户ID的权限（granted authority）
+    public Collection<? extends GrantedAuthority> getAuthorities(int userId) {//granted authority"（授予权限）用于表示用户在系统中被授予的权限或角色。
+        User user = this.findUserById(userId);
+
+        List<GrantedAuthority> list = new ArrayList<>();
+        list.add(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {//获取表示权限的字符串标识
+                switch (user.getType()) {
+                    case 1://管理员
+                        return AUTHORITY_ADMIN;
+                    case 2://版主
+                        return AUTHORITY_MODERATOR;
+                    default://用户
+                        return AUTHORITY_USER;
+                }
+                //return null;
+            }
+        });
+        return list;
     }
 }

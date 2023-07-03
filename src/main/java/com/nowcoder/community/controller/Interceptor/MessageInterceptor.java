@@ -12,8 +12,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 自定义的拦截器
- * 实现HandlerInterceptor接口
+ * 自定义的拦截器，实现HandlerInterceptor接口
+ *
+ * 当请求处理完成后，letterUnreadCount和allUnreadCount 属性将被添加到 modelAndView 对象中，
+ * 在视图中使用${letterUnreadCount} ${allUnreadCount} 表达式来获取该值进行展示。
  */
 @Component
 public class MessageInterceptor implements HandlerInterceptor {

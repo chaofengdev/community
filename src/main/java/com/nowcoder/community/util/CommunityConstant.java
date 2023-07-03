@@ -5,8 +5,8 @@ package com.nowcoder.community.util;
  */
 public interface CommunityConstant {
 
-    // 激活相关的常量
     /**
+     * 激活相关的常量
      * 激活成功
      */
     int ACTIVATION_SUCCESS = 0;//快捷键：ctrl+shift+u 将字符串所有字符转换为大写字符
@@ -24,8 +24,8 @@ public interface CommunityConstant {
 
 
 
-    // 登录相关的常量
     /**
+     * 登录相关的常量
      * 默认状态的登录凭证的超时时间 12小时
      */
     int DEFAULT_EXPIRED_SECONDS = 3600 * 12;//3600s * 12 == 12h
@@ -38,8 +38,8 @@ public interface CommunityConstant {
 
 
 
-    // 实体类型
     /**
+     * 实体类型相关的常量
      * 实体类型：帖子
      */
     int ENTITY_TYPE_POST = 1;
@@ -57,14 +57,23 @@ public interface CommunityConstant {
 
     /**
      * 消息队列的主题
+     * 主题：评论
      */
-    // 主题：评论
     String TOPIC_COMMENT = "comment";
-    // 主题：点赞
+
+    /**
+     * 主题：点赞
+     */
     String TOPIC_LIKE = "like";
-    // 主题：关注
+
+    /**
+     * 主题：关注
+     */
     String TOPIC_FOLLOW = "follow";
-    // 主题：发帖
+
+    /**
+     * 主题：发帖
+     */
     String TOPIC_PUBLISH = "publish";
 
     /**
@@ -73,5 +82,19 @@ public interface CommunityConstant {
     //系统用户id
     int SYSTEM_USER_ID = 1;
 
+    /**
+     * 权限：普通用户
+     */
+    String AUTHORITY_USER = "user";
+
+    /**
+     * 权限：管理员
+     */
+    String AUTHORITY_ADMIN = "admin";
+
+    /**
+     * 权限：版主
+     */
+    String AUTHORITY_MODERATOR = "moderator";
 
 }

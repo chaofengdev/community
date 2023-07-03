@@ -6,6 +6,14 @@ function publish() {
 	//隐藏对话框
 	$("#publishModal").modal("hide");
 
+	// //发送ajax请求之前，将csrf令牌设置到请求的消息头中
+	// //简单梳理过程：发送ajax异步请求时，从meta标签中取到token，添加到请求的消息头。
+	// var token = $("meta[name='_csrf']").attr("content");
+	// var header = $("meta[name='_csrf_header']").attr("content");
+	// $(document).ajaxSend(function (e, xhr, options) {
+	// 	xhr.setRequestHeader(header, token);
+	// });
+
 	//获取标题和内容
 	var title = $("#recipient-name").val();
 	var content = $("#message-text").val();
