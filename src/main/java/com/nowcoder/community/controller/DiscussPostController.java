@@ -167,4 +167,58 @@ public class DiscussPostController implements CommunityConstant {
         //返回模板路径
         return "/site/discuss-detail";
     }
+
+    //置顶
+    @RequestMapping(path = "/top", method = RequestMethod.POST)
+    @ResponseBody
+    public String setTop(int id) {
+        //修改帖子状态
+        discussPostService.updateType(id, 1);//帖子类型0表示普通，1表示置顶
+
+        // 触发发帖事件--这里是为了同步帖子信息到Elasticsearch中。
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUsers().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);//0表示成功
+    }
+
+    //加精
+    @RequestMapping(path = "/wonderful", method = RequestMethod.POST)
+    @ResponseBody
+    public String setWonderful(int id) {
+        //修改帖子状态
+        discussPostService.updateStatus(id, 1);//帖子状态0表示正常，1表示加精，2表示拉黑
+
+        // 触发发帖事件--这里是为了同步帖子信息到Elasticsearch中。
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUsers().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);//0表示成功
+    }
+
+    //删除
+    @RequestMapping(path = "/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public String setDelete(int id) {
+        //修改帖子状态
+        discussPostService.updateStatus(id, 2);//帖子状态0表示正常，1表示加精，2表示拉黑（删除）
+
+        // 触发删帖事件--这里是为了删除Elasticsearch中的帖子信息。
+        Event event = new Event()
+                .setTopic(TOPIC_DELETE)
+                .setUserId(hostHolder.getUsers().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);//0表示成功
+    }
 }

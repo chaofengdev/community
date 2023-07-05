@@ -29,4 +29,10 @@ public interface DiscussPostMapper {
 
     //修改--增加或者删除评论后，修改某个帖子的评论数量
     int updateCommentCount(int id, int commentCount);
+
+    //修改--更改帖子类型
+    int updateType(int id, int type);
+
+    //修改--更改帖子状态
+    int updateStatus(int id, int status);
 }
