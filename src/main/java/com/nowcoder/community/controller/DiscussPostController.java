@@ -168,12 +168,21 @@ public class DiscussPostController implements CommunityConstant {
         return "/site/discuss-detail";
     }
 
-    //置顶
+    //置顶、取消置顶
     @RequestMapping(path = "/top", method = RequestMethod.POST)
     @ResponseBody
     public String setTop(int id) {
         //修改帖子状态
-        discussPostService.updateType(id, 1);//帖子类型0表示普通，1表示置顶
+        //discussPostService.updateType(id, 1);//帖子类型0表示普通，1表示置顶
+
+        DiscussPost post = discussPostService.findDiscussPostById(id);
+        // 获取置顶状态 1为置顶，0为正常状态 1^1=0 0^1=1 这里没有考虑拉黑状态
+        int new_type = post.getType()^1;
+        discussPostService.updateType(id, new_type);
+
+        // 返回的结果
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", new_type);
 
         // 触发发帖事件--这里是为了同步帖子信息到Elasticsearch中。
         Event event = new Event()
@@ -183,15 +192,23 @@ public class DiscussPostController implements CommunityConstant {
                 .setEntityId(id);
         eventProducer.fireEvent(event);
 
-        return CommunityUtil.getJSONString(0);//0表示成功
+        return CommunityUtil.getJSONString(0, "操作失败了，联系开发人员解决问题吧！", map);//0表示成功
     }
 
-    //加精
+    //加精、取消加精
     @RequestMapping(path = "/wonderful", method = RequestMethod.POST)
     @ResponseBody
     public String setWonderful(int id) {
         //修改帖子状态
-        discussPostService.updateStatus(id, 1);//帖子状态0表示正常，1表示加精，2表示拉黑
+        //discussPostService.updateStatus(id, 1);//帖子状态0表示正常，1表示加精，2表示拉黑
+
+        DiscussPost post = discussPostService.findDiscussPostById(id);
+        // 获取加精状态 1为加精，0为正常， 1^1=0, 0^1=1
+        int new_status = post.getStatus()^1;
+        discussPostService.updateStatus(id, new_status);
+        // 返回的结果
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", new_status);
 
         // 触发发帖事件--这里是为了同步帖子信息到Elasticsearch中。
         Event event = new Event()
@@ -201,7 +218,7 @@ public class DiscussPostController implements CommunityConstant {
                 .setEntityId(id);
         eventProducer.fireEvent(event);
 
-        return CommunityUtil.getJSONString(0);//0表示成功
+        return CommunityUtil.getJSONString(0, "操作失败了，联系开发人员解决问题吧！", map);//0表示成功
     }
 
     //删除
