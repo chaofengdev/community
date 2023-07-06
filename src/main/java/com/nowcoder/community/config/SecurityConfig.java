@@ -68,12 +68,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                         AUTHORITY_ADMIN,
                         AUTHORITY_MODERATOR
                 )
+                .antMatchers(
+                        "/discuss/top",
+                        "/discuss/wonderful"
+                )
+                .hasAnyAuthority( //帖子置顶、加精需要的权限
+                        AUTHORITY_MODERATOR
+                )
+                .antMatchers(
+                        "/discuss/delete"
+                )
+                .hasAnyAuthority( //帖子删除需要的权限
+                        AUTHORITY_ADMIN
+                )
                 .anyRequest().permitAll()//其他任何请求都通过
                 .and().csrf().disable();//禁用 CSRF（Cross-Site Request Forgery）攻击检查
 
         // 配置异常处理
         http.exceptionHandling()
-                .authenticationEntryPoint(new AuthenticationEntryPoint() {//没有登录时的处理
+                //用户访问受保护的资源时，如果用户未登录，Srping Security会将请求重定向到authenticationEntryPoint来处理，调用commence方法中的处理逻辑。
+                .authenticationEntryPoint(new AuthenticationEntryPoint() {  //没有登录时的处理
                     @Override
                     public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
                         // 请求头部字段X-Requested-With，表明请求是通过XHR（XMLHttpRequest）发送的，常用于AJAX请求
@@ -90,7 +104,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                         }
                     }
                 })
-                .accessDeniedHandler(new AccessDeniedHandler() {//权限不足时的处理
+                //当已登录用户访问受保护的资源，但其权限不足时，Spring Security会将请求重定向到accessDeniedHandler来处理。handle()方法会被调用，提供了处理权限不足情况的自定义逻辑。
+                .accessDeniedHandler(new AccessDeniedHandler() {  //权限不足时的处理
                     @Override
                     public void handle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AccessDeniedException e) throws IOException, ServletException {
                         String header_field = httpServletRequest.getHeader("x-requested-with");
@@ -104,8 +119,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                     }
                 });
 
-        // Security底层默认会拦截/logout请求，进行退出处理
-        // 覆盖它默认的逻辑，才能执行自己的退出代码，这里指定一个不会访问的注销路径，这样我们的/logout逻辑才会执行。
-        http.logout().logoutUrl("securitylogout");//当用户访问指定的注销URL路径时，Spring Security 将执行默认的注销操作，包括清除用户的身份验证凭据并使其注销。
+        // 配置用户注销的相关设置
+        // 这里是指定了注销的请求url路径为securitylogout，如果不指定，Security底层默认会拦截/logout请求，进行退出处理
+        http.logout().logoutUrl("securitylogout");//需要在后端代码中实现对"/securitylogout"路径的处理逻辑，以完成用户注销的相关操作，也可以使用默认的注销处理器。
     }
 }

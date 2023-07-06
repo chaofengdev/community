@@ -126,7 +126,9 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!--在Thymeleaf模板中集成Spring Security 5-->
+		<!--Thymeleaf扩展库-->
+		<!--将 Thymeleaf 与 Spring Security 框架进行集成，简化了在 Thymeleaf 模板中实现安全相关功能的过程-->
+		<!--简单来说，提供了可以在thymeleaf表达式中访问的对象，可以用来检查用户的身份认证状态、相关权限，有条件地渲染内容。-->
 		<dependency>
 			<groupId>org.thymeleaf.extras</groupId>
 			<artifactId>thymeleaf-extras-springsecurity5</artifactId>
