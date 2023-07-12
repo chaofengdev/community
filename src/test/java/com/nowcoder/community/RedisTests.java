@@ -5,13 +5,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.core.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringRunner.class)
@@ -128,5 +128,126 @@ public class RedisTests {
             }
         });
         System.out.println(obj);//[0, 0, 0, 0, [boyue, jiangjie, lihua, chaofeng]]
+    }
+
+    //统计20w个重复数据的独立总数
+    // HyperLogLog是一种基数估计算法，用于统计集合中不重复元素的数量。它可以在很小的内存占用下，对非常大的数据集进行基数估计。
+    // HyperLogLog 在很多场景下都有广泛的应用，例如网站访问量统计、社交网络分析、广告点击统计等。
+    // UV" 通常指的是"独立访客"（Unique Visitors）。"独立访客" 是指在特定时间范围内访问网站的唯一个体或设备数量。
+    // 在数据处理中，基数（cardinality）是指集合中不重复元素的数量。HyperLogLog 可以在处理大规模数据时快速而高效地估计集合的基数。
+    @Test
+    public void testHyperLogLog() {
+        //创建了一个键为 "test:hll:01" 的 HyperLogLog 结构
+        String redisKey = "test:hll:01";
+
+        //模拟添加了 100,000 个不重复的数据
+        for (int i = 0; i < 100000; i++) {
+            //HyperLogLog是一种基数估计算法，用于计算集合中不重复元素的数量。
+            redisTemplate.opsForHyperLogLog().add(redisKey, i);
+        }
+
+        //模拟添加了 100,000 个随机重复的数据
+        for (int i = 0; i < 100000; i++) {
+            int r = (int) (Math.random() * 100000 + 1);//随机数范围[1,100000]
+            redisTemplate.opsForHyperLogLog().add(redisKey, r);
+        }
+
+        //获取 HyperLogLog 结构的估计基数，即独立总数
+        long redisKey_size = redisTemplate.opsForHyperLogLog().size(redisKey);
+        System.out.println("独立总数：" + redisKey_size);
+    }
+
+    //将三组数据合并，再统计合并后的重复数据的独立总数
+    @Test
+    public void testHyperLogLogUnion() {
+        String redis_key2 = "test:hll:02";
+        for (int i = 1; i <= 10000; i++) {
+            redisTemplate.opsForHyperLogLog().add(redis_key2, i);
+        }
+
+        String redis_key3 = "test:hll:03";
+        for (int i = 5001; i <= 15000; i++) {
+            redisTemplate.opsForHyperLogLog().add(redis_key3, i);
+        }
+
+        String redis_key4 = "test:hll:04";
+        for (int i = 10001; i <= 20000; i++) {
+            redisTemplate.opsForHyperLogLog().add(redis_key4, i);
+        }
+
+        // union用于计算多个 HyperLogLog 结构的并集，并将结果存储在一个新的 HyperLogLog 结构中
+        String unionKey = "test:hll:union";
+        redisTemplate.opsForHyperLogLog().union(unionKey, redis_key2, redis_key3, redis_key4);
+
+        long size = redisTemplate.opsForHyperLogLog().size(unionKey);
+        System.out.println(size);
+    }
+
+    //统计一组数据的布尔值
+    @Test
+    public void testBitMap() {
+        // 定义了一个 Redis 键 redisKey，用于存储位图数据。
+        String redisKey = "test:bm:01";
+
+        //记录 将指定位置的位值设置为 true（1）。在示例中，将第 1、4 和 7 位置的位值设置为 true。
+        redisTemplate.opsForValue().setBit(redisKey, 1, true);
+        redisTemplate.opsForValue().setBit(redisKey, 4, true);
+        redisTemplate.opsForValue().setBit(redisKey, 7, true);
+
+        //查询 查询指定位置的位值。在示例中，输出了第 0、1 和 2 位置的位值，即第 0 位为 false（0），第 1 位为 true（1），第 2 位因为没有设置过，所以返回默认值 false（0）。
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 0));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 1));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 2));
+
+        //统计 统计位图中被设置为 true 的位数，并将结果返回。
+        Object obj = redisTemplate.execute(new RedisCallback() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                //bitCount命令用于计算位图中被设置为 1 的位的数量。
+                return connection.bitCount(redisKey.getBytes());//将 Redis 键 redisKey 转换为字节数组形式
+                //return null;
+            }
+        });
+        System.out.println(obj);
+    }
+
+    //统计3组数据的布尔值，并对这3组数据做OR运算
+    @Test
+    public void testBitMapOperation() {
+        String redisKey2 = "test:bm:02";
+        redisTemplate.opsForValue().setBit(redisKey2, 0, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 1, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 2, true);
+
+        String redisKey3 = "test:bm:03";
+        redisTemplate.opsForValue().setBit(redisKey2, 2, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 3, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 4, true);
+
+        String redisKey4 = "test:bm:04";
+        redisTemplate.opsForValue().setBit(redisKey2, 4, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 5, true);
+        redisTemplate.opsForValue().setBit(redisKey2, 6, true);
+
+        //合并的结果，保存在新键redisKey
+        String redisKey = "test:dm:or";
+        Object obj = redisTemplate.execute(new RedisCallback() {
+            @Override
+            public Object doInRedis(RedisConnection connection) throws DataAccessException {
+                connection.bitOp(RedisStringCommands.BitOperation.OR,
+                        redisKey.getBytes(),
+                        redisKey2.getBytes(), redisKey3.getBytes(), redisKey4.getBytes());
+                return connection.bitCount(redisKey.getBytes());
+            }
+        });
+        System.out.println(obj);
+
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 0));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 1));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 2));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 3));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 4));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 5));
+        System.out.println(redisTemplate.opsForValue().getBit(redisKey, 6));
     }
 }
