@@ -24,10 +24,18 @@ zookeeper-server-stop.bat
 kafka-server-stop.bat
 
 
-# 启动kafka
+#命令备忘
+
+# kafka
 # 进入kafka主目录
-d:
-cd develop\kafka_2.12-2.3.0
-# 根据配置文件启动zookeeper和kafka
-bin\windows\zookeeper-server-start.bat config\zookeeper.properties
-bin\windows\kafka-server-start.bat config\server.properties
+cd D:\develop\kafka_2.12-2.3.0\bin\windows
+# 根据配置文件启动zookeeper
+.\zookeeper-server-start.bat config\zookeeper.properties
+# 根据配置文件启动kafka
+.\kafka-server-start.bat config\server.properties
+
+# Elasticsearch
+# 进入Elasticsearch主目录
+cd D:\develop\elasticsearch-6.4.3\bin
+# 启动Elasticsearch
+.\elasticsearch.bat

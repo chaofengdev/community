@@ -1,10 +1,7 @@
 package com.nowcoder.community.config;
 
 import com.nowcoder.community.annotation.LoginRequired;
-import com.nowcoder.community.controller.Interceptor.AlphaInterceptor;
-import com.nowcoder.community.controller.Interceptor.LoginRequiredInterceptor;
-import com.nowcoder.community.controller.Interceptor.LoginTicketInterceptor;
-import com.nowcoder.community.controller.Interceptor.MessageInterceptor;
+import com.nowcoder.community.controller.Interceptor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -33,6 +30,11 @@ public class WebMvcConfig implements WebMvcConfigurer {//WebMvcConfigurer接口�
     @Autowired
     private MessageInterceptor messageInterceptor;
 
+    @Autowired
+    private DataInterceptor dataInterceptor;
+
+
+
     /**
      * 下面定义的拦截器的实际执行的先后顺序：由注册的顺序决定。
      * @param registry
@@ -55,6 +57,10 @@ public class WebMvcConfig implements WebMvcConfigurer {//WebMvcConfigurer接口�
 
         //除了静态资源外，拦截所有请求。
         registry.addInterceptor(messageInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+
+        //除了静态资源外，拦截所有请求。
+        registry.addInterceptor(dataInterceptor)
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
     }
 }
