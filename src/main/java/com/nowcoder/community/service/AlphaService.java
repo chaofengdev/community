@@ -6,8 +6,12 @@ import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -50,6 +54,8 @@ public class AlphaService {
     public void destroy() {
 //        System.out.println("销毁AlphaService");
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(AlphaService.class);
 
     public String find() {
         return alphaDao.select();
@@ -135,5 +141,20 @@ public class AlphaService {
                 return "ok";
             }
         });
+    }
+
+    // 让该方法在多线程的环境下，被异步调用。
+    // 使用了@Async注解将execute1()方法标记为异步方法，该方法会被异步调用，不会阻塞当前线程，用于执行"被异步调用。"的日志输出。
+    // 异步方法通常用于在后台执行一些耗时的操作，以避免阻塞主线程。
+    @Async
+    public void execute1() {
+        logger.debug("被异步调用。");
+    }
+
+    // 让该方法在多线程环境下，定时执行
+    // 使用了@Scheduled注解将execute2()方法标记为定时任务，该方法会在应用启动后的10秒后开始执行，并每隔1秒执行一次，用于执行日志输出。
+    // @Scheduled(initialDelay = 10000, fixedRate = 1000)//开始时间 执行时间间隔
+    public void execute2() {
+        logger.debug("被异步调用，定时执行。");
     }
 }
