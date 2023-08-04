@@ -1,6 +1,7 @@
 package com.nowcoder.community.config;
 
 import com.nowcoder.community.quartz.AlphaJob;
+import com.nowcoder.community.quartz.PostScoreRefreshJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.springframework.context.annotation.Bean;
@@ -66,5 +67,42 @@ public class QuartzConfig {
         return factoryBean;
     }
 
+
+    // 刷新帖子分数任务
+    @Bean
+    public JobDetailFactoryBean postScoreRefreshJobDetail() {
+        JobDetailFactoryBean factoryBean = new JobDetailFactoryBean();
+        // 设置JobDetail关联的作业类，即将要执行的具体任务类。
+        factoryBean.setJobClass(PostScoreRefreshJob.class);
+        // 设置作业的名称
+        factoryBean.setName("postScoreRefreshJob");
+        // 设置作业的组名
+        factoryBean.setGroup("communityJobGroup");
+        // 设置作业的持久性，意味着即使没有触发器与其关联，该作业也会保留在Quartz的作业存储中。
+        factoryBean.setDurability(true);
+        // 设置作业是否支持恢复（Recovery）。如果设置为true，当应用程序重新启动时，如果作业执行失败，Quartz将尝试重新执行失败的作业。
+        factoryBean.setRequestsRecovery(true);
+        // 返回一个正确配置的JobDetailFactoryBean实例，该实例可以在Spring容器中注册为一个Bean，并用于定义作业的属性和行为。
+        // 将该JobDetail与触发器（Trigger）相关联，从而在指定的时间点或时间间隔执行您的AlphaJob任务。
+        return factoryBean;
+    }
+
+    @Bean
+    public SimpleTriggerFactoryBean postScoreRefreshTrigger(JobDetail postScoreRefreshJobDetail) {
+        SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
+        // 将之前定义的alphaJobDetail作业关联到这个触发器，表示该触发器要触发执行alphaJobDetail所描述的任务。
+        factoryBean.setJobDetail(postScoreRefreshJobDetail);
+        // 设置触发器的名称
+        factoryBean.setName("postScoreRefreshTrigger");
+        // 设置触发器的组名
+        factoryBean.setGroup("communityTriggerGroup");
+        // 设置触发器的重复间隔，这里设置为（1分钟）。意味着任务将每隔1秒执行一次。
+        factoryBean.setRepeatInterval(1000 * 60);
+        // 设置触发器的任务数据Map。JobDataMap是Quartz中传递参数给任务的一种方式，这里创建一个空的JobDataMap。
+        factoryBean.setJobDataMap(new JobDataMap());
+        // 返回一个正确配置的SimpleTriggerFactoryBean实例，该实例可以在Spring容器中注册为一个Bean，并用于定义触发器的属性和行为。
+        // 将这个触发器与之前定义的作业alphaJobDetail关联后，AlphaJob任务将会在每隔1秒执行一次。
+        return factoryBean;
+    }
 
 }

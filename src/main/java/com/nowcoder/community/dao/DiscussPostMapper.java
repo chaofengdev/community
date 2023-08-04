@@ -10,7 +10,7 @@ import java.util.List;
 public interface DiscussPostMapper {
     //根据用户id查询帖子，返回帖子集合，当id为0时，表示查询所有的帖子
     //输入用户id、起始帖子id、每页帖子数量
-    List<DiscussPost> selectDiscussPosts(int userId, int offset, int limit);
+    List<DiscussPost> selectDiscussPosts(int userId, int offset, int limit, int orderMode);
 
     //根据用户id查询帖子数量，返回整型值
     //当id为0时，表示查询所有的帖子数量
@@ -35,4 +35,7 @@ public interface DiscussPostMapper {
 
     //修改--更改帖子状态
     int updateStatus(int id, int status);
+
+    //修改--更改帖子分数
+    int updateScore(int id, double score);
 }

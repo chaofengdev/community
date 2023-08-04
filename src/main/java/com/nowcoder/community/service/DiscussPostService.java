@@ -18,8 +18,8 @@ public class DiscussPostService {
     private SensitiveFilter sensitiveFilter;
 
     //根据用户id查询用户发的帖子
-    public List<DiscussPost> findDiscussPosts(int userId, int offset, int limit) {
-        return discussPostMapper.selectDiscussPosts(userId, offset, limit);
+    public List<DiscussPost> findDiscussPosts(int userId, int offset, int limit, int orderMode) {
+        return discussPostMapper.selectDiscussPosts(userId, offset, limit, orderMode);
     }
 
     //根据用户id查询用户发的帖子数量
@@ -51,18 +51,23 @@ public class DiscussPostService {
         return discussPostMapper.selectDiscussPostById(id);
     }
 
-    //修改帖子--具体是修改某个帖子的评论数量
+    //修改帖子--帖子的评论数量
     public int updateCommentCount(int id, int commentCount) {
         return discussPostMapper.updateCommentCount(id, commentCount);
     }
 
-    //修改帖子--具体是修改某个帖子的类型
+    //修改帖子--帖子的类型
     public int updateType(int id, int type) {
         return discussPostMapper.updateType(id, type);
     }
 
-    //修改帖子--具体是修改某个帖子的状态
+    //修改帖子--帖子的状态
     public int updateStatus(int id, int status) {
         return discussPostMapper.updateStatus(id, status);
+    }
+
+    //修改帖子--帖子的分数
+    public int updateScore(int id, double score) {
+        return discussPostMapper.updateScore(id, score);
     }
 }

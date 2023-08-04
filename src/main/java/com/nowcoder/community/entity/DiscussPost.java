@@ -62,7 +62,7 @@ public class DiscussPost {
     @Field(type = FieldType.Integer)
     private int commentCount;
 
-    //帖子的权值
+    //帖子的权值 --这里是用于帖子热度排行
     @Field(type = FieldType.Double)
     private double score;
 

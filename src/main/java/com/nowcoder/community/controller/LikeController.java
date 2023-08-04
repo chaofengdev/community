@@ -7,7 +7,9 @@ import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,6 +34,9 @@ public class LikeController implements CommunityConstant {
     @Autowired
     private EventProducer eventProducer;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @RequestMapping(path = "/like", method = RequestMethod.POST)
     @ResponseBody
     public String like(int entityType, int entityId, int entityUserId, int postId) {//重构，增加postId
@@ -48,6 +53,8 @@ public class LikeController implements CommunityConstant {
         //状态
         int likeStatus = likeService.findEntityLikeStatus(user.getId(),entityType, entityId);
 
+
+
         //返回的结果
         Map<String, Object> map = new HashMap<>();
         map.put("likeCount", likeCount);
@@ -63,6 +70,12 @@ public class LikeController implements CommunityConstant {
                     .setEntityUserId(entityUserId)
                     .setData("postId", postId);//重构like方法，要求传入点赞的帖子id 为了前端能找到对应的帖子
             eventProducer.fireEvent(event);
+        }
+
+        if(entityType == ENTITY_TYPE_POST) {
+            // 计算帖子分数 只有对帖子的点赞会增加帖子的热度
+            String redisKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey, postId);
         }
 
         return CommunityUtil.getJSONString(0, null, map);//正确无提示，与前端页面需求有关。
